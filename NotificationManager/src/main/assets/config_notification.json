@@ -1,0 +1,317 @@
+[
+  {
+    "name": "random_experience_sampling",
+    "display_name": "Random Experience Sampling",
+    "package_name": "org.md2k.ema",
+    "file_name":"random_experience_sampling.json",
+    "timeout": {
+      "start_timeout": 300,
+      "completion_timeout": 300
+    },
+    "notification_option": [
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      },
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      }
+    ]
+  },
+  {
+    "name": "event_contingent_recording",
+    "display_name": "Event Contingent Recording",
+    "package_name": "org.md2k.ema",
+    "file_name":"event_contingent_recording.json",
+    "timeout": {
+      "start_timeout": 300,
+      "completion_timeout": 300
+    },
+    "notification_option": [
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      },
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      }
+    ]
+  },
+  {
+    "name": "end_of_day_recording",
+    "display_name": "End of Day Recording",
+    "package_name": "org.md2k.ema",
+    "file_name":"end_of_day_recording.json",
+    "timeout": {
+      "start_timeout": 300,
+      "completion_timeout": 300
+    },
+    "notification_option": [
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      },
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      }
+    ]
+  },
+  {
+    "name": "InterventionApp",
+    "display_name": "Intervention Apps",
+    "package_name": "org.md2k.moodsurfing",
+    "timeout": {
+      "start_timeout": 300,
+      "completion_timeout": 300
+    },
+    "notification_option": [
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      },
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      }
+    ]
+  },
+  {
+    "name": "headspace",
+    "display_name": "HeadSpace",
+    "package_name": "com.getsomeheadspace.android",
+    "timeout": {
+      "start_timeout": 300,
+      "completion_timeout": 300
+    },
+    "notification_option": [
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      },
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      }
+    ]
+  },
+  {
+    "name": "aeon",
+    "display_name": "Aeon",
+    "package_name": "it.uniud.hcilab.aeon",
+    "timeout": {
+      "start_timeout": 300,
+      "completion_timeout": 300
+    },
+    "notification_option": [
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      },
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      }
+    ]
+  },
+  {
+    "name": "moodsurfing",
+    "display_name": "MoodSurfing",
+    "package_name": "org.md2k.moodsurfing",
+    "timeout": {
+      "start_timeout": 300,
+      "completion_timeout": 300
+    },
+    "notification_option": [
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      },
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      }
+    ]
+  },
+  {
+    "name": "ThoughtShakeup",
+    "display_name": "Thought Shakeup",
+    "package_name": "org.md2k.thoughtshakeup",
+    "timeout": {
+      "start_timeout": 300,
+      "completion_timeout": 300
+    },
+    "notification_option": [
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      },
+      {
+        "priority": 0,
+        "duration": 120,
+        "interval": 15,
+        "source": {
+          "platform_type": "PHONE",
+          "location": ""
+        },
+        "notification": {
+          "vibrate": 2,
+          "tone": 2,
+          "message": "abc"
+        }
+      }
+    ]
+  }
+]
