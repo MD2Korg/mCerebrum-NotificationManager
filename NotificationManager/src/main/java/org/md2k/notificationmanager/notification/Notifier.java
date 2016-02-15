@@ -1,8 +1,17 @@
 package org.md2k.notificationmanager.notification;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.view.WindowManager;
+
+import org.md2k.notificationmanager.R;
+import org.md2k.notificationmanager.configuration.Notification;
+import org.md2k.notificationmanager.configuration.NotificationOption;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
@@ -30,15 +39,28 @@ import java.util.ArrayList;
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-public abstract class Notifier {
-    int priority;
-    String platform_type;
-    String location;
-    long start_timeout;
-    Notification notification;
+public abstract class Notifier implements Comparable<Notifier> {
     Context context;
-    Notifier(Context context){
+    NotificationOption notificationOption;
+    Notifier(Context context, NotificationOption notificationOption){
         this.context=context;
+        this.notificationOption=notificationOption;
     }
     abstract boolean isAvailable();
+    abstract void alert();
+    abstract void cancelAlert();
+
+    public static class Comparators {
+        public static Comparator<Notifier> PRIORITY = new Comparator<Notifier>() {
+            @Override
+            public int compare(Notifier o1, Notifier o2) {
+                return o1.notificationOption.getPriority() - (o2.notificationOption.getPriority());
+            }
+        };
+    }
+
+    public NotificationOption getNotificationOption() {
+        return notificationOption;
+    }
+
 }

@@ -1,5 +1,9 @@
 package org.md2k.notificationmanager.configuration;
 
+
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.ArrayList;
 
 /**
@@ -28,13 +32,38 @@ import java.util.ArrayList;
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-public class NotificationConfig {
+public class NotificationConfig implements Parcelable{
     String name;
+    String type;
     String display_name;
     String package_name;
     String file_name;
     Timeout timeout;
+
     ArrayList<NotificationOption> notification_option;
+
+
+    protected NotificationConfig(Parcel in) {
+        name = in.readString();
+        type = in.readString();
+        display_name = in.readString();
+        package_name = in.readString();
+        file_name = in.readString();
+        timeout = in.readParcelable(Timeout.class.getClassLoader());
+        notification_option = in.createTypedArrayList(NotificationOption.CREATOR);
+    }
+
+    public static final Creator<NotificationConfig> CREATOR = new Creator<NotificationConfig>() {
+        @Override
+        public NotificationConfig createFromParcel(Parcel in) {
+            return new NotificationConfig(in);
+        }
+
+        @Override
+        public NotificationConfig[] newArray(int size) {
+            return new NotificationConfig[size];
+        }
+    };
 
     public String getName() {
         return name;
@@ -58,5 +87,27 @@ public class NotificationConfig {
 
     public String getFile_name() {
         return file_name;
+    }
+
+
+    public String getType() {
+        return type;
+    }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeString(type);
+        dest.writeString(display_name);
+        dest.writeString(package_name);
+        dest.writeString(file_name);
+        dest.writeParcelable(timeout, flags);
+        dest.writeTypedList(notification_option);
     }
 }

@@ -1,5 +1,7 @@
 package org.md2k.notificationmanager;
 
+import android.os.Environment;
+
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
  * - Syed Monowar Hossain <monowar.hossain@gmail.com>
@@ -27,9 +29,6 @@ package org.md2k.notificationmanager;
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 public class Constants {
-    public static final int ASSET=0;
-    public static final int INTERNAL_SDCARD=1;
-    public static final int EXTERNAL_SDCARD=2;
-    public static final int FILE_LOCATION=ASSET;
-    public static final String CONFIG_FILENAME = "config_notification.json";
+    public static final String CONFIG_DIRECTORY= Environment.getExternalStorageDirectory().getAbsolutePath() + "/mCerebrum/org.md2k.notificationmanager/";
+    public static final String CONFIG_FILENAME = "default_config.json";
 }

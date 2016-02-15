@@ -1,5 +1,8 @@
 package org.md2k.notificationmanager.configuration;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
  * - Syed Monowar Hossain <monowar.hossain@gmail.com>
@@ -26,30 +29,45 @@ package org.md2k.notificationmanager.configuration;
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-public class NotificationOption {
+public class NotificationOption implements Parcelable{
     int priority;
-    long duration;
-    long interval;
-    Source source;
     Notification notification;
+
+
+    protected NotificationOption(Parcel in) {
+        priority = in.readInt();
+        notification = in.readParcelable(Notification.class.getClassLoader());
+    }
+
+    public static final Creator<NotificationOption> CREATOR = new Creator<NotificationOption>() {
+        @Override
+        public NotificationOption createFromParcel(Parcel in) {
+            return new NotificationOption(in);
+        }
+
+        @Override
+        public NotificationOption[] newArray(int size) {
+            return new NotificationOption[size];
+        }
+    };
 
     public int getPriority() {
         return priority;
     }
 
-    public long getDuration() {
-        return duration;
-    }
-
-    public long getInterval() {
-        return interval;
-    }
-
-    public Source getSource() {
-        return source;
-    }
 
     public Notification getNotification() {
         return notification;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(priority);
+        dest.writeParcelable(notification, flags);
     }
 }

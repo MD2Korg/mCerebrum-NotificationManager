@@ -1,12 +1,17 @@
 package org.md2k.notificationmanager.notification;
 
 import android.content.Context;
+import android.os.Handler;
 
-import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
+import com.google.gson.Gson;
+
+import org.md2k.datakitapi.DataKitAPI;
+import org.md2k.datakitapi.datatype.DataTypeString;
 import org.md2k.datakitapi.source.datasource.DataSourceClient;
-import org.md2k.datakitapi.source.datasource.DataSourceType;
-import org.md2k.datakitapi.status.StatusCodes;
-import org.md2k.utilities.datakit.DataKitHandler;
+import org.md2k.datakitapi.time.DateTime;
+import org.md2k.notificationmanager.configuration.NotificationOption;
+import org.md2k.utilities.Report.Log;
+import org.md2k.utilities.data_format.Notification;
 
 import java.util.ArrayList;
 
@@ -37,14 +42,22 @@ import java.util.ArrayList;
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 public class NotifierMicrosoftBand extends Notifier {
-    DataKitHandler dataKitHandler;
+    private static final String TAG = NotifierMicrosoftBand.class.getSimpleName() ;
     Context context;
-    NotifierMicrosoftBand(Context context){
-        super(context);
-        dataKitHandler=DataKitHandler.getInstance(context);
+    DataSourceClient dataSourceClient;
+    Handler handler;
+    int curVibrateCount;
+
+    NotifierMicrosoftBand(Context context, NotificationOption notificationOption, DataSourceClient dataSourceClient){
+        super(context, notificationOption);
+        curVibrateCount=0;
+        handler=new Handler();
+        this.dataSourceClient=dataSourceClient;
     }
     boolean isAvailable(){
-        if(dataKitHandler.isConnected()){
+        //TODO: check whether MSBand available
+        return true;
+/*        if(dataKitHandler.isConnected()){
             DataSourceBuilder dataSourceBuilder=new DataSourceBuilder().setType(DataSourceType.BAND_CONTACT);
             ArrayList<DataSourceClient> dataSourceClientArrayList=dataKitHandler.find(dataSourceBuilder);
             for(int i=0;i<dataSourceClientArrayList.size();i++){
@@ -54,5 +67,56 @@ public class NotifierMicrosoftBand extends Notifier {
             }
         }
         return false;
+*/    }
+    int gerVibrationType(String vibrationType){
+        switch(vibrationType){
+            case "NOTIFICATION_ONE_TONE": return Notification.VIBRATION.NOTIFICATION_ONE_TONE;
+            case "NOTIFICATION_TWO_TONE": return Notification.VIBRATION.NOTIFICATION_TWO_TONE;
+            case "NOTIFICATION_ALARM": return Notification.VIBRATION.NOTIFICATION_ALARM;
+            case "NOTIFICATION_TIMER": return Notification.VIBRATION.NOTIFICATION_TIMER;
+            case "ONE_TONE_HIGH": return Notification.VIBRATION.ONE_TONE_HIGH;
+            case "TWO_TONE_HIGH": return Notification.VIBRATION.TWO_TONE_HIGH;
+            case "THREE_TONE_HIGH": return Notification.VIBRATION.THREE_TONE_HIGH;
+            case "RAMP_UP": return Notification.VIBRATION.RAMP_UP;
+            case "RAMP_DOWN": return Notification.VIBRATION.RAMP_DOWN;
+            default:return 0;
+        }
+    }
+    private Runnable setAlarmVibrate = new Runnable() {
+        public void run() {
+            if (curVibrateCount <= notificationOption.getNotification().getVibrate_count()) {
+                curVibrateCount++;
+                vibrate();
+                handler.postDelayed(this, notificationOption.getNotification().getVibrate_interval() * 1000);
+            }
+        }
+    };
+    void vibrate(){
+        Gson gson=new Gson();
+        Notification notification=new Notification();
+        notification.setDataSource(notificationOption.getNotification().getDataSource());
+        notification.setOperation(Notification.OPERATION.SEND);
+        notification.setNotification_type(notificationOption.getNotification().getType());
+        notification.setMessage(notificationOption.getNotification().getMessage());
+        notification.setVibration_type(gerVibrationType(notificationOption.getNotification().getVibrate_type()));
+        String str=gson.toJson(notification);
+        Log.d(TAG, "alert()... MicrosoftBand=" + str);
+        DataTypeString dataTypeString=new DataTypeString(DateTime.getDateTime(),str);
+        DataKitAPI.getInstance(context).insert(dataSourceClient,dataTypeString);
+    }
+
+    @Override
+    void alert() {
+        handler.post(setAlarmVibrate);
+    }
+
+    @Override
+    void cancelAlert() {
+        handler.removeCallbacks(setAlarmVibrate);
+    }
+
+    @Override
+    public int compareTo(Notifier notifier) {
+        return 0;
     }
 }

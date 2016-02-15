@@ -5,6 +5,9 @@ import android.media.ToneGenerator;
 import android.os.Handler;
 import android.os.Vibrator;
 
+import org.md2k.notificationmanager.configuration.NotificationOption;
+import org.md2k.utilities.Report.Log;
+
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
  * - Syed Monowar Hossain <monowar.hossain@gmail.com>
@@ -32,55 +35,67 @@ import android.os.Vibrator;
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 public class NotifierPhone extends Notifier {
+    private static final String TAG = NotifierPhone.class.getSimpleName() ;
     Handler handler;
-    int beepCount;
-    int totalBeepCount;
-    int totalPromptTime;
-    int promptTime;
-    public static final int PROMPT_INTERVAL=500;
+    int curToneCount;
+    int curVibrateCount;
 
-    NotifierPhone(Context context, int totalBeepCount, int totalPromptTime) {
-        super(context);
-        this.totalBeepCount=totalBeepCount;
-        this.totalPromptTime=totalPromptTime;
+    NotifierPhone(Context context, NotificationOption notificationOption) {
+        super(context, notificationOption);
         handler = new Handler();
-        beepCount = 0;
+        curToneCount = 0;
+        curVibrateCount=0;
     }
+
     public boolean isAvailable() {
         return true;
     }
 
-    private Runnable setAlarm = new Runnable() {
+    private Runnable setAlarmTone = new Runnable() {
         public void run() {
-            handler.post(promptUser);
-            promptTime =0;
-            beepCount++;
-            if (beepCount < notification.duration/notification.interval)
-                handler.postDelayed(this, notification.interval * 1000);
-        }
-    };
-    private Runnable promptUser = new Runnable() {
-        public void run() {
-            if(promptTime<totalPromptTime){
-                promptTime++;
-                prompt();
-                handler.postDelayed(this, PROMPT_INTERVAL);
+            if (curToneCount <= notificationOption.getNotification().getTone_count()) {
+                curToneCount++;
+                tone();
+                handler.postDelayed(this, notificationOption.getNotification().getTone_interval() * 1000);
             }
         }
     };
-    private void prompt() {
+    private Runnable setAlarmVibrate = new Runnable() {
+        public void run() {
+            if (curVibrateCount <= notificationOption.getNotification().getVibrate_count()) {
+                curVibrateCount++;
+                vibrate();
+                handler.postDelayed(this, notificationOption.getNotification().getVibrate_interval() * 1000);
+            }
+        }
+    };
+
+    private void vibrate() {
         Vibrator vibrator;
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(500);
+    }
+
+    private void tone() {
         ToneGenerator tone = new ToneGenerator(android.media.AudioManager.STREAM_DTMF, 100);
-        tone.startTone(ToneGenerator.TONE_CDMA_ONE_MIN_BEEP, 500);
+        tone.startTone(ToneGenerator.TONE_PROP_PROMPT);
         tone.release();
     }
+
     public void alert() {
-        handler.post(setAlarm);
+        handler.post(setAlarmTone);
+        handler.post(setAlarmVibrate);
     }
-    public void cancelAlert(){
-        handler.removeCallbacks(promptUser);
-        handler.removeCallbacks(setAlarm);
+
+    public void cancelAlert() {
+        Log.d(TAG, "cancelAlert()");
+        handler.removeCallbacks(setAlarmVibrate);
+        handler.removeCallbacks(setAlarmTone);
     }
+
+    @Override
+    public int compareTo(Notifier notifier) {
+        return 0;
+    }
+
 }

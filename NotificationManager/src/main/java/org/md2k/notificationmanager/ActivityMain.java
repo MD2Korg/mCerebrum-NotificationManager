@@ -1,8 +1,13 @@
 package org.md2k.notificationmanager;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -12,20 +17,21 @@ import org.md2k.notificationmanager.configuration.NotificationConfigManager;
 import org.md2k.utilities.Report.Log;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
-public class ActivityMain extends Activity {
+public class ActivityMain extends AppCompatActivity {
     private static final String TAG = ActivityMain.class.getSimpleName();
     ArrayList<NotificationConfig> notificationConfigs;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        notificationConfigs = NotificationConfigManager.getInstance(this).getNotificationConfig();
+        Intent intent = new Intent(getApplicationContext(), ServiceNotificationManager.class);
+        startService(intent);
+        notificationConfigs = NotificationConfigManager.getInstance(getApplicationContext()).getNotificationConfig();
         addButtons();
     }
     void addButtons() {
+        if(notificationConfigs==null) return;
         for (int i = 0; i < notificationConfigs.size(); i++) {
             Button myButton = new Button(this);
             myButton.setText(notificationConfigs.get(i).getDisplay_name());
@@ -36,17 +42,12 @@ public class ActivityMain extends Activity {
             myButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = getPackageManager().getLaunchIntentForPackage(notificationConfigs.get(finalI).getPackage_name());
-                    intent.setAction(notificationConfigs.get(finalI).getPackage_name());
-                    intent.putExtra("id", UUID.randomUUID().toString());
-                    intent.putExtra("name", notificationConfigs.get(finalI).getName());
-                    intent.putExtra("display_name", notificationConfigs.get(finalI).getDisplay_name());
-                    intent.putExtra("file_name", notificationConfigs.get(finalI).getFile_name());
-                    intent.putExtra("timeout", notificationConfigs.get(finalI).getTimeout().getCompletion_timeout());
-                    startActivity(intent);
+                    Intent intent = new Intent(getApplicationContext(), ServiceNotificationManager.class);
+                    Log.d(TAG, "name=" + NotificationConfig.class.getSimpleName());
+                    intent.putExtra(NotificationConfig.class.getSimpleName(),notificationConfigs.get(finalI));
+                    startService(intent);
                 }
             });
         }
     }
-
 }

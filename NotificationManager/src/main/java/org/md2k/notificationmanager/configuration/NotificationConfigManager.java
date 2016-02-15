@@ -6,12 +6,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.md2k.notificationmanager.Constants;
+import org.md2k.utilities.Files;
 import org.md2k.utilities.Report.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
@@ -47,7 +48,7 @@ import java.util.List;
 public class NotificationConfigManager {
     private static NotificationConfigManager instance=null;
     Context context;
-    ArrayList<NotificationConfig> notificationConfig;
+    ArrayList<NotificationConfig> notificationConfigs;
     public static NotificationConfigManager getInstance(Context context){
         if(instance==null)
             instance=new NotificationConfigManager(context);
@@ -55,35 +56,27 @@ public class NotificationConfigManager {
     }
     NotificationConfigManager(Context context){
         this.context=context;
-        notificationConfig = readNotificationConfigFromFile(context);
+        read();
     }
-    private ArrayList<NotificationConfig> readNotificationConfigFromFile(Context context) {
-        ArrayList<NotificationConfig> notificationConfigs;
+    private void read() {
         BufferedReader br;
-        String filename=Constants.CONFIG_FILENAME;
-        try {
-            if (Constants.FILE_LOCATION == Constants.ASSET) {
-                br = new BufferedReader(new InputStreamReader(context.getAssets().open(filename)));
-            } else {
-                if (!isExist(filename)) throw new FileNotFoundException();
-                br = new BufferedReader(new FileReader(filename));
+        String filepath=Constants.CONFIG_DIRECTORY+Constants.CONFIG_FILENAME;
+        Log.d("Noti", "filepath=" + filepath);
+        if(!Files.isExist(filepath))
+            notificationConfigs=null;
+        else {
+            try {
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(filepath)));
+                Gson gson = new Gson();
+                Type collectionType = new TypeToken<List<NotificationConfig>>() {
+                }.getType();
+                notificationConfigs = gson.fromJson(br, collectionType);
+            } catch (IOException e) {
+                notificationConfigs = null;
             }
-            Gson gson = new Gson();
-            Type collectionType = new TypeToken<List<NotificationConfig>>() {
-            }.getType();
-            notificationConfigs = gson.fromJson(br, collectionType);
-            return notificationConfigs;
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return null;
     }
-    private boolean isExist(String filename) {
-        File file = new File(filename);
-        return file.exists();
-    }
-
     public ArrayList<NotificationConfig> getNotificationConfig() {
-        return notificationConfig;
+        return notificationConfigs;
     }
 }
