@@ -6,8 +6,11 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -15,6 +18,8 @@ import android.widget.LinearLayout;
 import org.md2k.notificationmanager.configuration.NotificationConfig;
 import org.md2k.notificationmanager.configuration.NotificationConfigManager;
 import org.md2k.utilities.Report.Log;
+import org.md2k.utilities.UI.ActivityAbout;
+import org.md2k.utilities.UI.ActivityCopyright;
 
 import java.util.ArrayList;
 
@@ -50,4 +55,39 @@ public class ActivityMain extends AppCompatActivity {
             });
         }
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_settings, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+            case R.id.action_about:
+                intent = new Intent(this, ActivityAbout.class);
+                try {
+                    intent.putExtra(org.md2k.utilities.Constants.VERSION_CODE, String.valueOf(this.getPackageManager().getPackageInfo(getPackageName(), 0).versionCode));
+                    intent.putExtra(org.md2k.utilities.Constants.VERSION_NAME, this.getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+                startActivity(intent);
+                break;
+            case R.id.action_copyright:
+                intent = new Intent(this, ActivityCopyright.class);
+                startActivity(intent);
+                break;
+            case R.id.action_settings:
+                break;
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 }

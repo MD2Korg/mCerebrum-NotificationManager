@@ -30,5 +30,5 @@ import android.os.Environment;
  */
 public class Constants {
     public static final String CONFIG_DIRECTORY= Environment.getExternalStorageDirectory().getAbsolutePath() + "/mCerebrum/org.md2k.notificationmanager/";
-    public static final String CONFIG_FILENAME = "default_config.json";
+    public static final String CONFIG_FILENAME = "config.json";
 }
