@@ -62,6 +62,7 @@ public class ServiceNotificationManager extends Service {
         Log.d(TAG, "onCreate()");
         notificationConfigManager = NotificationConfigManager.getInstance(getApplicationContext());
         if(notificationConfigManager.getNotificationConfig()==null){
+            notificationConfigManager.clear();
             Toast.makeText(getApplicationContext(), "!!!Error: Notification Configuration file not available...", Toast.LENGTH_LONG).show();
             stopSelf();
         } else {

@@ -79,4 +79,7 @@ public class NotificationConfigManager {
     public ArrayList<NotificationConfig> getNotificationConfig() {
         return notificationConfigs;
     }
+    public void clear(){
+        instance=null;
+    }
 }
