@@ -1,18 +1,29 @@
 package org.md2k.notificationmanager.notification;
 
 import android.content.Context;
+import android.os.Handler;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.md2k.datakitapi.DataKitAPI;
+import org.md2k.datakitapi.datatype.DataType;
+import org.md2k.datakitapi.datatype.DataTypeString;
+import org.md2k.datakitapi.messagehandler.OnReceiveListener;
+import org.md2k.datakitapi.source.application.Application;
+import org.md2k.datakitapi.source.application.ApplicationBuilder;
 import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
 import org.md2k.datakitapi.source.datasource.DataSourceClient;
 import org.md2k.datakitapi.source.datasource.DataSourceType;
 import org.md2k.datakitapi.source.platform.PlatformType;
-import org.md2k.notificationmanager.configuration.NotificationConfig;
-import org.md2k.notificationmanager.configuration.NotificationOption;
+import org.md2k.datakitapi.time.DateTime;
 import org.md2k.utilities.Report.Log;
+import org.md2k.utilities.data_format.NotificationAcknowledge;
+import org.md2k.utilities.data_format.NotificationRequest;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
@@ -42,69 +53,182 @@ import java.util.Collections;
  */
 public class NotificationManager {
     private static final String TAG = NotificationManager.class.getSimpleName();
-    ArrayList<Notifier> notifiers;
-    NotificationConfig notificationConfig;
     Context context;
-    DataSourceClient dataSourceClient;
-    private static NotificationManager instance=null;
-    public static NotificationManager getInstance(Context context){
-        if(instance==null) instance=new NotificationManager(context);
+    private static NotificationManager instance = null;
+    HashMap<String, Notification> notificationHashMap;
+    DataSourceClient dataSourceClientAcknowledge;
+    ArrayList<DataSourceClient> dataSourceClientRequests;
+
+    public static NotificationManager getInstance(Context context) {
+        if (instance == null) instance = new NotificationManager(context);
         return instance;
     }
-    NotificationManager(Context context){
-        Log.d(TAG,"Constructor()");
-        this.context=context;
-        notifiers=new ArrayList<>();
-        DataSourceBuilder dataSourceBuilder=new DataSourceBuilder().setType(DataSourceType.NOTIFICATION);
-        dataSourceClient= DataKitAPI.getInstance(context).register(dataSourceBuilder);
-        Log.d(TAG,"ds_id="+dataSourceClient.getDs_id());
+
+
+    void prepareNotificationHashMap() {
+        notificationHashMap = new HashMap<>();
+        notificationHashMap.put(MicrosoftBandMessage.class.getSimpleName(), new MicrosoftBandMessage(context, callback));
+        notificationHashMap.put(MicrosoftBandVibrate.class.getSimpleName(), new MicrosoftBandVibrate(context, callback));
+        notificationHashMap.put(PhoneTone.class.getSimpleName(), new PhoneTone(context, callback));
+        notificationHashMap.put(PhoneVibrate.class.getSimpleName(), new PhoneVibrate(context, callback));
+        notificationHashMap.put(PhoneScreen.class.getSimpleName(), new PhoneScreen(context, callback));
+        notificationHashMap.put(PhoneMessage.class.getSimpleName(), new PhoneMessage(context, callback));
+        notificationHashMap.put(PhoneNotification.class.getSimpleName(), new PhoneNotification(context, callback));
     }
-    public void clear(){
-        cancelAlert();
-        notifiers.clear();
+
+    Callback callback = new Callback() {
+        @Override
+        public void onResponse(NotificationRequest notificationRequest, String status) {
+            Log.d(TAG, "onResponse=" + status);
+            stopAll();
+            if (status.equals(NotificationAcknowledge.DELAY)) {
+                notificationHashMap.get(PhoneNotification.class.getSimpleName()).start(notificationRequest);
+            }
+            insertToDataKit(notificationRequest, status);
+        }
+    };
+
+    void insertToDataKit(NotificationRequest notificationRequest, String status) {
+        Gson gson = new Gson();
+        NotificationAcknowledge notificationAcknowledge = new NotificationAcknowledge();
+        notificationAcknowledge.setNotificationRequest(notificationRequest);
+        notificationAcknowledge.setStatus(status);
+        DataTypeString dataTypeString = new DataTypeString(DateTime.getDateTime(), gson.toJson(notificationAcknowledge));
+        DataKitAPI.getInstance(context).insert(dataSourceClientAcknowledge, dataTypeString);
     }
-    public void setNotificationManager(NotificationConfig notificationConfig){
-        clear();
-        this.notificationConfig=notificationConfig;
-        for(int i=0;i<notificationConfig.getNotification_option().size();i++){
-            addNotifier(notificationConfig.getNotification_option().get(i));
+
+
+    public void stopAll() {
+        for (HashMap.Entry<String, Notification> entry : notificationHashMap.entrySet()) {
+            entry.getValue().stop();
         }
     }
-    private void addNotifier(NotificationOption notificationOption){
-        switch(notificationOption.getNotification().getDataSource().getPlatform().getType()){
+
+    Handler handlerSubscribe;
+    Runnable runnableSubscribe = new Runnable() {
+        @Override
+        public void run() {
+            Application application = new ApplicationBuilder().setId("org.md2k.ema_scheduler").build();
+            DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST).setApplication(application);
+            dataSourceClientRequests = DataKitAPI.getInstance(context).find(dataSourceBuilder);
+            Log.d(TAG, "DataSourceClients...size=" + dataSourceClientRequests.size());
+            if (dataSourceClientRequests.size() == 0) {
+                handlerSubscribe.postDelayed(this, 1000);
+            } else {
+                for (int i = 0; i < dataSourceClientRequests.size(); i++) {
+                    DataKitAPI.getInstance(context).subscribe(dataSourceClientRequests.get(i), new OnReceiveListener() {
+                        @Override
+                        public void onReceived(DataType dataType) {
+                            DataTypeString dataTypeString = (DataTypeString) dataType;
+                            Log.d(TAG, "dataTypeString=" + dataTypeString.getSample());
+                            Gson gson = new Gson();
+                            Type collectionType = new TypeToken<NotificationRequest>() {
+                            }.getType();
+                            NotificationRequest notificationRequest = gson.fromJson(dataTypeString.getSample(), collectionType);
+                            String notificationString = getNotificationString(notificationRequest);
+                            if (notificationString != null) {
+                                notificationHashMap.get(notificationString).start(notificationRequest);
+                            }
+                        }
+                    });
+                }
+
+            }
+        }
+    };
+
+    NotificationManager(Context context) {
+        Log.d(TAG, "Constructor()");
+        this.context = context;
+        prepareNotificationHashMap();
+        DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_ACKNOWLEDGE);
+        dataSourceClientAcknowledge = DataKitAPI.getInstance(context).register(dataSourceBuilder);
+        handlerSubscribe = new Handler();
+        handlerSubscribe.post(runnableSubscribe);
+    }
+
+    String getNotificationString(NotificationRequest notificationRequest) {
+        switch (notificationRequest.getDatasource().getPlatform().getType()) {
+            case PlatformType.MICROSOFT_BAND:
+                switch (notificationRequest.getType()) {
+                    case NotificationRequest.VIBRATION:
+                        return MicrosoftBandVibrate.class.getSimpleName();
+                    case NotificationRequest.MESSAGE:
+                        return MicrosoftBandMessage.class.getSimpleName();
+                    default:
+                        return null;
+                }
             case PlatformType.PHONE:
-                NotifierPhone notifierPhone=new NotifierPhone(context,notificationOption);
-                notifiers.add(notifierPhone);
+                switch (notificationRequest.getType()) {
+                    case NotificationRequest.VIBRATION:
+                        return PhoneVibrate.class.getSimpleName();
+                    case NotificationRequest.TONE:
+                        return PhoneTone.class.getSimpleName();
+                    case NotificationRequest.SCREEN:
+                        return PhoneScreen.class.getSimpleName();
+                    case NotificationRequest.MESSAGE:
+                        return PhoneMessage.class.getSimpleName();
+                    case NotificationRequest.NOTIFICATION:
+                        return PhoneNotification.class.getSimpleName();
+                    default:
+                        return null;
+                }
+        }
+        return null;
+    }
+
+    public void clear() {
+//        cancelAlert();
+//        notifications.clear();
+        handlerSubscribe.removeCallbacks(runnableSubscribe);
+        for (int i = 0; i < dataSourceClientRequests.size(); i++)
+            DataKitAPI.getInstance(context).unsubscribe(dataSourceClientRequests.get(i));
+        DataKitAPI.getInstance(context).unregister(dataSourceClientAcknowledge);
+        instance = null;
+    }
+ /*   public void setNotificationManager(NotificationConfig notificationConfig){
+        clear();
+        this.notificationConfig=notificationConfig;
+        for(int i=0;i<notificationConfig.getNotification_Request().size();i++){
+            addNotifier(notificationConfig.getNotification_Request().get(i));
+        }
+    }
+    private void addNotifier(NotificationRequest notificationRequest){
+        switch(notificationRequest.getNotification().getDataSource().getPlatform().getType()){
+            case PlatformType.PHONE:
+                NotifierPhone notifierPhone=new NotifierPhone(context,notificationRequest);
+                notifications.add(notifierPhone);
                 break;
             case PlatformType.MICROSOFT_BAND:
-                NotifierMicrosoftBand notifierMicrosoftBand=new NotifierMicrosoftBand(context, notificationOption,dataSourceClient);
-                notifiers.add(notifierMicrosoftBand);
+                MicrosoftBandVibrate microsoftBandVibrate =new MicrosoftBandVibrate(context, notificationRequest,dataSourceClient);
+                notifications.add(microsoftBandVibrate);
                 break;
         }
     }
     int getPriorityAvailable(){
-        Collections.sort(notifiers, Notifier.Comparators.PRIORITY);
-        for(int i=0;i<notifiers.size();i++)
-            if(notifiers.get(i).isAvailable()){
-                return notifiers.get(i).notificationOption.getPriority();
+        Collections.sort(notifications, Notifier.Comparators.PRIORITY);
+        for(int i=0;i< notifications.size();i++)
+            if(notifications.get(i).isAvailable()){
+                return notifications.get(i).notificationRequest.getPriority();
             }
         return -1;
     }
     public void alert(){
         int priority=getPriorityAvailable();
-        for(int i=0;i<notifiers.size();i++)
-            if(notifiers.get(i).isAvailable() && notifiers.get(i).notificationOption.getPriority()==priority){
-//                Log.d(TAG,"send notification: "+notifiers.get(i).notificationOption.getNotification().getSource().getPlatform_type()+" "+notifiers.get(i).notificationOption.getNotification().getSource().getLocation());
-                notifiers.get(i).alert();
+        for(int i=0;i< notifications.size();i++)
+            if(notifications.get(i).isAvailable() && notifications.get(i).notificationRequest.getPriority()==priority){
+//                Log.d(TAG,"send notification: "+notifications.get(i).notificationRequest.getNotification().getSource().getPlatform_type()+" "+notifications.get(i).notificationRequest.getNotification().getSource().getLocation());
+                notifications.get(i).alert();
             }
     }
     public void cancelAlert(){
         Log.d(TAG, "CancelAlert()");
         int priority=getPriorityAvailable();
-        for(int i=0;i<notifiers.size();i++)
-            if(notifiers.get(i).isAvailable() && notifiers.get(i).notificationOption.getPriority()==priority){
-                notifiers.get(i).cancelAlert();
+        for(int i=0;i< notifications.size();i++)
+            if(notifications.get(i).isAvailable() && notifications.get(i).notificationRequest.getPriority()==priority){
+                notifications.get(i).cancelAlert();
             }
 
     }
+    */
 }

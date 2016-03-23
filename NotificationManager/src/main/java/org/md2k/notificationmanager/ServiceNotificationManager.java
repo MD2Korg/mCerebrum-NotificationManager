@@ -1,28 +1,16 @@
 package org.md2k.notificationmanager;
 
-import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.IBinder;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import org.md2k.datakitapi.DataKitAPI;
 import org.md2k.datakitapi.messagehandler.OnConnectionListener;
 import org.md2k.datakitapi.messagehandler.OnExceptionListener;
-import org.md2k.datakitapi.source.platform.PlatformType;
 import org.md2k.datakitapi.status.Status;
-import org.md2k.notificationmanager.configuration.NotificationConfig;
-import org.md2k.notificationmanager.configuration.NotificationConfigManager;
-import org.md2k.notificationmanager.configuration.NotificationOption;
 import org.md2k.notificationmanager.notification.NotificationManager;
 import org.md2k.utilities.Report.Log;
-
-import java.util.UUID;
 
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
@@ -55,25 +43,17 @@ public class ServiceNotificationManager extends Service {
     private static final String TAG = ServiceNotificationManager.class.getSimpleName();
     DataKitAPI dataKitAPI;
     NotificationManager notificationManager;
-    NotificationConfigManager notificationConfigManager;
 
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate()");
-        notificationConfigManager = NotificationConfigManager.getInstance(getApplicationContext());
-        if(notificationConfigManager.getNotificationConfig()==null){
-            notificationConfigManager.clear();
-            Toast.makeText(getApplicationContext(), "!!!Error: Notification Configuration file not available...", Toast.LENGTH_LONG).show();
-            stopSelf();
-        } else {
-            connectDataKit();
-        }
+        connectDataKit();
     }
-
+/*
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand()...");
-        if (intent!=null && intent.hasExtra(NotificationConfig.class.getSimpleName())) {
+        if (intent != null && intent.hasExtra(NotificationConfig.class.getSimpleName())) {
             Log.d(TAG, "onStartCommand()...yes");
             NotificationConfig notificationConfig = (NotificationConfig) intent.getParcelableExtra(NotificationConfig.class.getSimpleName());
 //            createNotification(notificationConfig);
@@ -111,7 +91,7 @@ public class ServiceNotificationManager extends Service {
 
     private void connectDataKit() {
         Log.d(TAG, "connectDataKit()...");
-        dataKitAPI = DataKitAPI.getInstance(getApplicationContext());
+        dataKitAPI = DataKitAPI.getInstance(this);
         dataKitAPI.connect(new OnConnectionListener() {
             @Override
             public void onConnected() {
@@ -131,7 +111,8 @@ public class ServiceNotificationManager extends Service {
 
     @Override
     public void onDestroy() {
-        Log.d(TAG,"onDestroy()...");
+        Log.d(TAG, "onDestroy()...");
+        notificationManager.clear();
         if (dataKitAPI != null && dataKitAPI.isConnected()) dataKitAPI.disconnect();
         if (dataKitAPI != null)
             dataKitAPI.close();
@@ -143,42 +124,17 @@ public class ServiceNotificationManager extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 /*
-    public void createNotification(NotificationConfig notificationConfig) {
-        // Prepare intent which is triggered if the
-        // notification is selected
-        Intent intent = getPackageManager().getLaunchIntentForPackage(notificationConfig.getPackage_name());
-        intent.setAction(notificationConfig.getPackage_name());
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent, 0);
-
-        // Build notification
-        // Actions are just fake
-        Notification noti = new Notification.Builder(this)
-                .setContentTitle(notificationConfig.getNotification_option().getAlert_header())
-                .setContentText(notificationConfig.getAlert_text()).setSmallIcon(R.drawable.ic_notification_survey)
-                .setContentIntent(pIntent)
-                .setAutoCancel(true)
-                .build();
-        android.app.NotificationManager notificationManager = (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        noti.flags |= Notification.FLAG_NO_CLEAR;
-        notificationManager.notify(0, noti);
-    }
-
-    public void cancelNotification() {
-        android.app.NotificationManager nMgr = (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        nMgr.cancel(0);
-    }
-*/
-    NotificationOption find(NotificationConfig notificationConfig){
-        for(int i=0;i<notificationConfig.getNotification_option().size();i++){
-            if(PlatformType.PHONE.equals(notificationConfig.getNotification_option().get(i).getNotification().getDataSource().getPlatform().getType()))
+    NotificationOption find(NotificationConfig notificationConfig) {
+        for (int i = 0; i < notificationConfig.getNotification_option().size(); i++) {
+            if (PlatformType.PHONE.equals(notificationConfig.getNotification_option().get(i).getNotification().getDataSource().getPlatform().getType()))
                 return notificationConfig.getNotification_option().get(i);
         }
         return null;
     }
+
     void showAlertDialogShowNotification(final NotificationConfig notificationConfig) {
-        NotificationOption notificationOption=find(notificationConfig);
-        if(notificationOption==null) return;
+        NotificationOption notificationOption = find(notificationConfig);
+        if (notificationOption == null) return;
         AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setTitle(notificationOption.getNotification().getMessage()[0])
                 .setIcon(R.drawable.ic_notification_survey)
@@ -209,4 +165,5 @@ public class ServiceNotificationManager extends Service {
         alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         alertDialog.show();
     }
+    */
 }

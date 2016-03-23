@@ -1,17 +1,16 @@
 package org.md2k.notificationmanager.notification;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.view.WindowManager;
 
-import org.md2k.notificationmanager.R;
-import org.md2k.notificationmanager.configuration.Notification;
-import org.md2k.notificationmanager.configuration.NotificationOption;
+import com.google.gson.Gson;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import org.md2k.datakitapi.DataKitAPI;
+import org.md2k.datakitapi.datatype.DataTypeString;
+import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
+import org.md2k.datakitapi.source.datasource.DataSourceClient;
+import org.md2k.datakitapi.source.datasource.DataSourceType;
+import org.md2k.datakitapi.time.DateTime;
+import org.md2k.utilities.data_format.NotificationRequest;
 
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
@@ -39,28 +38,30 @@ import java.util.Comparator;
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-public abstract class Notifier implements Comparable<Notifier> {
+public class MicrosoftBandVibrate extends Notification {
+    private static final String TAG = MicrosoftBandVibrate.class.getSimpleName() ;
     Context context;
-    NotificationOption notificationOption;
-    Notifier(Context context, NotificationOption notificationOption){
-        this.context=context;
-        this.notificationOption=notificationOption;
+    DataSourceClient dataSourceClient;
+    MicrosoftBandVibrate(Context context, Callback callback){
+        super(context, callback);
+        DataSourceBuilder dataSourceBuilder=new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST);
+        dataSourceClient= DataKitAPI.getInstance(context).register(dataSourceBuilder);
     }
-    abstract boolean isAvailable();
-    abstract void alert();
-    abstract void cancelAlert();
-
-    public static class Comparators {
-        public static Comparator<Notifier> PRIORITY = new Comparator<Notifier>() {
-            @Override
-            public int compare(Notifier o1, Notifier o2) {
-                return o1.notificationOption.getPriority() - (o2.notificationOption.getPriority());
-            }
-        };
+    @Override
+    public void start(NotificationRequest notificationRequest) {
+        this.notificationRequest=notificationRequest;
+        vibrate();
     }
 
-    public NotificationOption getNotificationOption() {
-        return notificationOption;
+    @Override
+    public void stop() {
+
     }
 
+    void vibrate(){
+        Gson gson=new Gson();
+        String str=gson.toJson(notificationRequest);
+        DataTypeString dataTypeString=new DataTypeString(DateTime.getDateTime(),str);
+        DataKitAPI.getInstance(context).insert(dataSourceClient,dataTypeString);
+    }
 }

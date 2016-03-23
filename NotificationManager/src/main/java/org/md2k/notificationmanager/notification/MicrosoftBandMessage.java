@@ -1,7 +1,16 @@
-package org.md2k.notificationmanager.configuration;
+package org.md2k.notificationmanager.notification;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.content.Context;
+
+import com.google.gson.Gson;
+
+import org.md2k.datakitapi.DataKitAPI;
+import org.md2k.datakitapi.datatype.DataTypeString;
+import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
+import org.md2k.datakitapi.source.datasource.DataSourceClient;
+import org.md2k.datakitapi.source.datasource.DataSourceType;
+import org.md2k.datakitapi.time.DateTime;
+import org.md2k.utilities.data_format.NotificationRequest;
 
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
@@ -29,45 +38,29 @@ import android.os.Parcelable;
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-public class NotificationOption implements Parcelable{
-    int priority;
-    Notification notification;
-
-
-    protected NotificationOption(Parcel in) {
-        priority = in.readInt();
-        notification = in.readParcelable(Notification.class.getClassLoader());
+public class MicrosoftBandMessage extends Notification {
+    private static final String TAG = MicrosoftBandMessage.class.getSimpleName() ;
+    Context context;
+    DataSourceClient dataSourceClient;
+    MicrosoftBandMessage(Context context, Callback callback){
+        super(context, callback);
+        DataSourceBuilder dataSourceBuilder=new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST);
+        dataSourceClient= DataKitAPI.getInstance(context).register(dataSourceBuilder);
     }
-
-    public static final Creator<NotificationOption> CREATOR = new Creator<NotificationOption>() {
-        @Override
-        public NotificationOption createFromParcel(Parcel in) {
-            return new NotificationOption(in);
-        }
-
-        @Override
-        public NotificationOption[] newArray(int size) {
-            return new NotificationOption[size];
-        }
-    };
-
-    public int getPriority() {
-        return priority;
-    }
-
-
-    public Notification getNotification() {
-        return notification;
+    @Override
+    public void start(NotificationRequest notificationRequest) {
+        this.notificationRequest=notificationRequest;
+        message();
     }
 
     @Override
-    public int describeContents() {
-        return 0;
+    public void stop() {
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(priority);
-        dest.writeParcelable(notification, flags);
+    void message(){
+        Gson gson=new Gson();
+        String str=gson.toJson(notificationRequest);
+        DataTypeString dataTypeString=new DataTypeString(DateTime.getDateTime(),str);
+        DataKitAPI.getInstance(context).insert(dataSourceClient,dataTypeString);
     }
 }
