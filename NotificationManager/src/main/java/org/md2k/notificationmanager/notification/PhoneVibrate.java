@@ -15,7 +15,7 @@ public class PhoneVibrate extends Notification {
     Handler handler;
     int count;
 
-    PhoneVibrate(Context context, Callback1 callback) {
+    PhoneVibrate(Context context, Callback callback) {
         super(context, callback);
         handler = new Handler();
     }

@@ -23,7 +23,7 @@ public class PhoneNotification extends Notification {
     boolean isRegistered=false;
     android.app.NotificationManager mNotificationManager = null;
 
-    PhoneNotification(Context context, Callback1 callback) {
+    PhoneNotification(Context context, Callback callback) {
         super(context, callback);
         handler = new Handler();
         isRegistered=false;

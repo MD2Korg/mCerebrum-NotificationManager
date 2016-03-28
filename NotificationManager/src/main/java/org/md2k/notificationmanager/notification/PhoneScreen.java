@@ -16,7 +16,7 @@ public class PhoneScreen extends Notification {
     Handler handler;
     PowerManager.WakeLock wl=null;
 
-    PhoneScreen(Context context, Callback1 callback) {
+    PhoneScreen(Context context, Callback callback) {
         super(context, callback);
         handler=new Handler();
     }

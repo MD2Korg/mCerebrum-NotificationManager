@@ -13,7 +13,7 @@ public class PhoneTone extends Notification {
     Handler handler;
     int count;
 
-    PhoneTone(Context context, Callback1 callback) {
+    PhoneTone(Context context, Callback callback) {
         super(context, callback);
         handler = new Handler();
     }

@@ -76,7 +76,7 @@ public class NotificationManager {
         notificationHashMap.put(PhoneNotification.class.getSimpleName(), new PhoneNotification(context, callback));
     }
 
-    Callback1 callback = new Callback1() {
+    Callback callback = new Callback() {
         @Override
         public void onResponse(NotificationRequest notificationRequest, String status) {
             Log.d(TAG, "onResponse=" + status);

@@ -22,7 +22,7 @@ public class PhoneMessage extends Notification {
     AlertDialog alertDialogCancel;
     AlertDialog alertDialogDelayOptions;
 
-    PhoneMessage(Context context, Callback1 callback) {
+    PhoneMessage(Context context, Callback callback) {
         super(context, callback);
         handler = new Handler();
     }
