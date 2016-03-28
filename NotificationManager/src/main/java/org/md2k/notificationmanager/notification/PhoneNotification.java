@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 
 import org.md2k.utilities.Report.Log;
+import org.md2k.utilities.data_format.NotificationAcknowledge;
 import org.md2k.utilities.data_format.NotificationRequest;
 
 /**
@@ -22,7 +23,7 @@ public class PhoneNotification extends Notification {
     boolean isRegistered=false;
     android.app.NotificationManager mNotificationManager = null;
 
-    PhoneNotification(Context context, Callback callback) {
+    PhoneNotification(Context context, Callback1 callback) {
         super(context, callback);
         handler = new Handler();
         isRegistered=false;
@@ -52,7 +53,8 @@ public class PhoneNotification extends Notification {
         context.registerReceiver(receiverStartNow, new IntentFilter(ACTION_CLICKED));
         isRegistered=true;
         showNotification();
-        handler.postDelayed(runnableStop, notificationRequest.getDuration());
+        Log.d(TAG,"duration="+notificationRequest.getDuration());
+        handler.postDelayed(runnableStop, notificationRequest.getResponse_option().getDelay_time());
     }
     private BroadcastReceiver receiverStartNow = new BroadcastReceiver()
     {
@@ -61,6 +63,8 @@ public class PhoneNotification extends Notification {
         {
             String action = intent.getAction();
             Log.d(TAG,"delay stopped");
+            callback.onResponse(notificationRequest, NotificationAcknowledge.DELAY_CANCEL);
+
 
 //            if(action.equals(NOTIFICATION_MEDIA_CHANGE_NEXT))
 //                playNextSong();

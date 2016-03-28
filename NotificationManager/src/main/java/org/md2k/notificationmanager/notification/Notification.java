@@ -11,8 +11,8 @@ import org.md2k.utilities.data_format.NotificationRequest;
 public abstract class Notification {
     NotificationRequest notificationRequest;
     Context context;
-    Callback callback;
-    Notification(Context context, Callback callback){
+    Callback1 callback;
+    Notification(Context context, Callback1 callback){
         this.context=context;this.callback = callback;
     }
     public abstract void start(NotificationRequest notificationRequest);

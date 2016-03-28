@@ -76,12 +76,13 @@ public class NotificationManager {
         notificationHashMap.put(PhoneNotification.class.getSimpleName(), new PhoneNotification(context, callback));
     }
 
-    Callback callback = new Callback() {
+    Callback1 callback = new Callback1() {
         @Override
         public void onResponse(NotificationRequest notificationRequest, String status) {
             Log.d(TAG, "onResponse=" + status);
             stopAll();
             if (status.equals(NotificationAcknowledge.DELAY)) {
+                Log.d(TAG,"notification ack=DELAY");
                 notificationHashMap.get(PhoneNotification.class.getSimpleName()).start(notificationRequest);
             }
             insertToDataKit(notificationRequest, status);

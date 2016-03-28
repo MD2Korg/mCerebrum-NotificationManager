@@ -42,7 +42,7 @@ public class MicrosoftBandMessage extends Notification {
     private static final String TAG = MicrosoftBandMessage.class.getSimpleName() ;
     Context context;
     DataSourceClient dataSourceClient;
-    MicrosoftBandMessage(Context context, Callback callback){
+    MicrosoftBandMessage(Context context, Callback1 callback){
         super(context, callback);
         DataSourceBuilder dataSourceBuilder=new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST);
         dataSourceClient= DataKitAPI.getInstance(context).register(dataSourceBuilder);
