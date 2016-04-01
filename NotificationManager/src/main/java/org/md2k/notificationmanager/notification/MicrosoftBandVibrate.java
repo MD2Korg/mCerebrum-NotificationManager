@@ -42,7 +42,7 @@ public class MicrosoftBandVibrate extends Notification {
     private static final String TAG = MicrosoftBandVibrate.class.getSimpleName() ;
     Context context;
     DataSourceClient dataSourceClient;
-    MicrosoftBandVibrate(Context context, Callback callback){
+    MicrosoftBandVibrate(Context context, Callback1 callback){
         super(context, callback);
         DataSourceBuilder dataSourceBuilder=new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST);
         dataSourceClient= DataKitAPI.getInstance(context).register(dataSourceBuilder);

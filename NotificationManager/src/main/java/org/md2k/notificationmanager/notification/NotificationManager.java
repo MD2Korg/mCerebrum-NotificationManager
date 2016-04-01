@@ -76,7 +76,7 @@ public class NotificationManager {
         notificationHashMap.put(PhoneNotification.class.getSimpleName(), new PhoneNotification(context, callback));
     }
 
-    Callback callback = new Callback() {
+    Callback1 callback = new Callback1() {
         @Override
         public void onResponse(NotificationRequest notificationRequest, String status) {
             Log.d(TAG, "onResponse=" + status);
@@ -126,6 +126,7 @@ public class NotificationManager {
                             Type collectionType = new TypeToken<NotificationRequest>() {
                             }.getType();
                             NotificationRequest notificationRequest = gson.fromJson(dataTypeString.getSample(), collectionType);
+
                             String notificationString = getNotificationString(notificationRequest);
                             if (notificationString != null) {
                                 notificationHashMap.get(notificationString).start(notificationRequest);
@@ -181,6 +182,7 @@ public class NotificationManager {
     public void clear() {
 //        cancelAlert();
 //        notifications.clear();
+        stopAll();
         handlerSubscribe.removeCallbacks(runnableSubscribe);
         for (int i = 0; i < dataSourceClientRequests.size(); i++)
             DataKitAPI.getInstance(context).unsubscribe(dataSourceClientRequests.get(i));

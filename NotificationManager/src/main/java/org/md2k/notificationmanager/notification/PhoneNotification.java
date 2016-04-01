@@ -23,7 +23,7 @@ public class PhoneNotification extends Notification {
     boolean isRegistered=false;
     android.app.NotificationManager mNotificationManager = null;
 
-    PhoneNotification(Context context, Callback callback) {
+    PhoneNotification(Context context, Callback1 callback) {
         super(context, callback);
         handler = new Handler();
         isRegistered=false;
@@ -64,12 +64,6 @@ public class PhoneNotification extends Notification {
             String action = intent.getAction();
             Log.d(TAG,"delay stopped");
             callback.onResponse(notificationRequest, NotificationAcknowledge.DELAY_CANCEL);
-
-
-//            if(action.equals(NOTIFICATION_MEDIA_CHANGE_NEXT))
-//                playNextSong();
-//            else if(action.equals(NOTIFICATION_MEDIA_CHANGE_BACK))
-//                playPreviousSong();
         }
     };
     Runnable runnableStop = new Runnable() {

@@ -49,46 +49,6 @@ public class ServiceNotificationManager extends Service {
         Log.d(TAG, "onCreate()");
         connectDataKit();
     }
-/*
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand()...");
-        if (intent != null && intent.hasExtra(NotificationConfig.class.getSimpleName())) {
-            Log.d(TAG, "onStartCommand()...yes");
-            NotificationConfig notificationConfig = (NotificationConfig) intent.getParcelableExtra(NotificationConfig.class.getSimpleName());
-//            createNotification(notificationConfig);
-            notificationManager.setNotificationManager(notificationConfig);
-            notificationManager.alert();
-            showAlertDialogShowNotification(notificationConfig);
-        }
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    /*    void showAlertDialogConfiguration(final Context context){
-            AlertDialog alertDialog = new AlertDialog.Builder(this)
-                    .setTitle("Error: Configuration File")
-                    .setIcon(R.drawable.ic_error_outline_white_24dp)
-                    .setMessage("Phone Sensor is not configured.\n\n Please go to Menu -> Settings (or, click Settings below)")
-                    .setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(context, ActivityPhoneSensorSettings.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            context.startActivity(intent);
-                        }
-                    })
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    })
-                    .create();
-
-            alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-            alertDialog.show();
-        }
-    */    //            UIShow.ErrorDialog(getApplicationContext(), "DataKit Error", "DataKit is not available.\n\nPlease Install DataKit");
-
     private void connectDataKit() {
         Log.d(TAG, "connectDataKit()...");
         dataKitAPI = DataKitAPI.getInstance(this);
@@ -123,47 +83,4 @@ public class ServiceNotificationManager extends Service {
     public IBinder onBind(Intent intent) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
-/*
-    NotificationOption find(NotificationConfig notificationConfig) {
-        for (int i = 0; i < notificationConfig.getNotification_option().size(); i++) {
-            if (PlatformType.PHONE.equals(notificationConfig.getNotification_option().get(i).getNotification().getDataSource().getPlatform().getType()))
-                return notificationConfig.getNotification_option().get(i);
-        }
-        return null;
-    }
-
-    void showAlertDialogShowNotification(final NotificationConfig notificationConfig) {
-        NotificationOption notificationOption = find(notificationConfig);
-        if (notificationOption == null) return;
-        AlertDialog alertDialog = new AlertDialog.Builder(this)
-                .setTitle(notificationOption.getNotification().getMessage()[0])
-                .setIcon(R.drawable.ic_notification_survey)
-                .setMessage(notificationOption.getNotification().getMessage()[1])
-                .setPositiveButton("Start Now", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        notificationManager.cancelAlert();
-                        Intent intent = getPackageManager().getLaunchIntentForPackage(notificationConfig.getPackage_name());
-                        intent.setAction(notificationConfig.getPackage_name());
-                        intent.putExtra("id", UUID.randomUUID().toString());
-                        intent.putExtra("name", notificationConfig.getName());
-                        intent.putExtra("display_name", notificationConfig.getDisplay_name());
-                        intent.putExtra("file_name", notificationConfig.getFile_name());
-                        intent.putExtra("timeout", notificationConfig.getTimeout().getCompletion_timeout());
-                        Log.d(TAG, "name=" + notificationConfig.getName() + " timeout=" + notificationConfig.getTimeout().getCompletion_timeout());
-                        startActivity(intent);
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        NotificationManager.getInstance(getBaseContext()).clear();
-                    }
-                })
-                .create();
-
-        alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        alertDialog.show();
-    }
-    */
 }
