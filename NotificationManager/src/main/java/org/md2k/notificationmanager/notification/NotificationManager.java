@@ -4,11 +4,12 @@ import android.content.Context;
 import android.os.Handler;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.md2k.datakitapi.DataKitAPI;
 import org.md2k.datakitapi.datatype.DataType;
-import org.md2k.datakitapi.datatype.DataTypeString;
+import org.md2k.datakitapi.datatype.DataTypeJSONObject;
 import org.md2k.datakitapi.messagehandler.OnReceiveListener;
 import org.md2k.datakitapi.source.application.Application;
 import org.md2k.datakitapi.source.application.ApplicationBuilder;
@@ -21,7 +22,6 @@ import org.md2k.utilities.Report.Log;
 import org.md2k.utilities.data_format.NotificationAcknowledge;
 import org.md2k.utilities.data_format.NotificationRequest;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -94,8 +94,9 @@ public class NotificationManager {
         NotificationAcknowledge notificationAcknowledge = new NotificationAcknowledge();
         notificationAcknowledge.setNotificationRequest(notificationRequest);
         notificationAcknowledge.setStatus(status);
-        DataTypeString dataTypeString = new DataTypeString(DateTime.getDateTime(), gson.toJson(notificationAcknowledge));
-        DataKitAPI.getInstance(context).insert(dataSourceClientAcknowledge, dataTypeString);
+        JsonObject sample = new JsonParser().parse(gson.toJson(notificationAcknowledge)).getAsJsonObject();
+        DataTypeJSONObject dataTypeJSONObject = new DataTypeJSONObject(DateTime.getDateTime(), sample);
+        DataKitAPI.getInstance(context).insert(dataSourceClientAcknowledge, dataTypeJSONObject);
     }
 
 
@@ -120,13 +121,9 @@ public class NotificationManager {
                     DataKitAPI.getInstance(context).subscribe(dataSourceClientRequests.get(i), new OnReceiveListener() {
                         @Override
                         public void onReceived(DataType dataType) {
-                            DataTypeString dataTypeString = (DataTypeString) dataType;
-                            Log.d(TAG, "dataTypeString=" + dataTypeString.getSample());
+                            DataTypeJSONObject dataTypeJSONObject = (DataTypeJSONObject) dataType;
                             Gson gson = new Gson();
-                            Type collectionType = new TypeToken<NotificationRequest>() {
-                            }.getType();
-                            NotificationRequest notificationRequest = gson.fromJson(dataTypeString.getSample(), collectionType);
-
+                            NotificationRequest notificationRequest = gson.fromJson(dataTypeJSONObject.getSample().toString(), NotificationRequest.class);
                             String notificationString = getNotificationString(notificationRequest);
                             if (notificationString != null) {
                                 notificationHashMap.get(notificationString).start(notificationRequest);

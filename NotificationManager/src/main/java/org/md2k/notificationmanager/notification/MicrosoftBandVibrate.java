@@ -3,9 +3,11 @@ package org.md2k.notificationmanager.notification;
 import android.content.Context;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.md2k.datakitapi.DataKitAPI;
-import org.md2k.datakitapi.datatype.DataTypeString;
+import org.md2k.datakitapi.datatype.DataTypeJSONObject;
 import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
 import org.md2k.datakitapi.source.datasource.DataSourceClient;
 import org.md2k.datakitapi.source.datasource.DataSourceType;
@@ -60,8 +62,8 @@ public class MicrosoftBandVibrate extends Notification {
 
     void vibrate(){
         Gson gson=new Gson();
-        String str=gson.toJson(notificationRequest);
-        DataTypeString dataTypeString=new DataTypeString(DateTime.getDateTime(),str);
-        DataKitAPI.getInstance(context).insert(dataSourceClient,dataTypeString);
+        JsonObject sample = new JsonParser().parse(gson.toJson(notificationRequest)).getAsJsonObject();
+        DataTypeJSONObject dataTypeJSONObject = new DataTypeJSONObject(DateTime.getDateTime(), sample);
+        DataKitAPI.getInstance(context).insert(dataSourceClient,dataTypeJSONObject);
     }
 }
