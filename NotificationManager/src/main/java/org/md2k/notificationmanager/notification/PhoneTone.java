@@ -1,6 +1,7 @@
 package org.md2k.notificationmanager.notification;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.os.Handler;
 
@@ -43,8 +44,15 @@ public class PhoneTone extends Notification {
     }
 
     private void tone() {
+        AudioManager am =
+                (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
+        am.setStreamVolume(
+                AudioManager.STREAM_DTMF,
+                am.getStreamMaxVolume(AudioManager.STREAM_DTMF),
+                0);
         ToneGenerator tone = new ToneGenerator(android.media.AudioManager.STREAM_DTMF, 100);
-        tone.startTone(ToneGenerator.TONE_PROP_PROMPT);
+        tone.startTone(ToneGenerator.TONE_PROP_BEEP);
         tone.release();
     }
 
