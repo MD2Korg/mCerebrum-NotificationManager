@@ -11,16 +11,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.crashlytics.android.Crashlytics;
+
 import org.md2k.datakitapi.time.DateTime;
 import org.md2k.utilities.Apps;
 import org.md2k.utilities.UI.ActivityAbout;
 import org.md2k.utilities.UI.ActivityCopyright;
+
+import io.fabric.sdk.android.Fabric;
 
 public class ActivityMain extends AppCompatActivity {
     private static final String TAG = ActivityMain.class.getSimpleName();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
         final Button buttonService = (Button) findViewById(R.id.button_app_status);
         buttonService.setOnClickListener(new View.OnClickListener() {
