@@ -11,8 +11,6 @@ import org.md2k.datakitapi.DataKitAPI;
 import org.md2k.datakitapi.datatype.DataType;
 import org.md2k.datakitapi.datatype.DataTypeJSONObject;
 import org.md2k.datakitapi.messagehandler.OnReceiveListener;
-import org.md2k.datakitapi.source.application.Application;
-import org.md2k.datakitapi.source.application.ApplicationBuilder;
 import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
 import org.md2k.datakitapi.source.datasource.DataSourceClient;
 import org.md2k.datakitapi.source.datasource.DataSourceType;
@@ -110,8 +108,7 @@ public class NotificationManager {
     Runnable runnableSubscribe = new Runnable() {
         @Override
         public void run() {
-            Application application = new ApplicationBuilder().setId("org.md2k.ema_scheduler").build();
-            DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST).setApplication(application);
+            DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST);
             dataSourceClientRequests = DataKitAPI.getInstance(context).find(dataSourceBuilder);
             Log.d(TAG, "DataSourceClients...size=" + dataSourceClientRequests.size());
             if (dataSourceClientRequests.size() == 0) {

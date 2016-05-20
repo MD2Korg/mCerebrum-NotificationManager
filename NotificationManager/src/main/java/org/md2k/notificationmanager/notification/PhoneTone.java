@@ -2,10 +2,14 @@ package org.md2k.notificationmanager.notification;
 
 import android.content.Context;
 import android.media.AudioManager;
-import android.media.ToneGenerator;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Handler;
 
+import org.md2k.notificationmanager.Constants;
 import org.md2k.utilities.data_format.NotificationRequest;
+
+import java.io.IOException;
 
 /**
  * Created by monowar on 3/13/16.
@@ -13,6 +17,7 @@ import org.md2k.utilities.data_format.NotificationRequest;
 public class PhoneTone extends Notification {
     Handler handler;
     int count;
+    MediaPlayer mPlayer;
 
     PhoneTone(Context context, Callback1 callback) {
         super(context, callback);
@@ -32,7 +37,7 @@ public class PhoneTone extends Notification {
         public void run() {
             if (count < notificationRequest.getRepeat()) {
                 count++;
-                tone();
+                play();
                 handler.postDelayed(this, notificationRequest.getDuration() / notificationRequest.getRepeat());
             }
         }
@@ -40,10 +45,33 @@ public class PhoneTone extends Notification {
 
     @Override
     public void stop() {
+        try {
+            if (mPlayer != null) {
+                mPlayer.stop();
+                mPlayer.release();
+            }
+            mPlayer=null;
+        }catch (Exception ignored){
+
+        }
         handler.removeCallbacks(runnableTone);
     }
+    private void play(){
+        try {
+            mPlayer = new MediaPlayer();
+            Uri myUri = Uri.parse(Constants.CONFIG_DIRECTORY+"tone.mp3");
+            mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mPlayer.setDataSource(context, myUri);
+            mPlayer.prepare();
+            mPlayer.start();
 
-    private void tone() {
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+/*    private void tone() {
         AudioManager am =
                 (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
@@ -55,5 +83,5 @@ public class PhoneTone extends Notification {
         tone.startTone(ToneGenerator.TONE_PROP_BEEP);
         tone.release();
     }
-
+*/
 }
