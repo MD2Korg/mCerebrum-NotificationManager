@@ -1,7 +1,9 @@
 package org.md2k.notificationmanager.notification;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -10,18 +12,21 @@ import com.google.gson.JsonParser;
 import org.md2k.datakitapi.DataKitAPI;
 import org.md2k.datakitapi.datatype.DataType;
 import org.md2k.datakitapi.datatype.DataTypeJSONObject;
+import org.md2k.datakitapi.exception.DataKitException;
 import org.md2k.datakitapi.messagehandler.OnReceiveListener;
 import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
 import org.md2k.datakitapi.source.datasource.DataSourceClient;
 import org.md2k.datakitapi.source.datasource.DataSourceType;
 import org.md2k.datakitapi.source.platform.PlatformType;
 import org.md2k.datakitapi.time.DateTime;
+import org.md2k.notificationmanager.ServiceNotificationManager;
 import org.md2k.utilities.Report.Log;
 import org.md2k.utilities.data_format.NotificationAcknowledge;
 import org.md2k.utilities.data_format.NotificationRequest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
@@ -56,6 +61,7 @@ public class NotificationManager {
     HashMap<String, Notification> notificationHashMap;
     DataSourceClient dataSourceClientAcknowledge;
     ArrayList<DataSourceClient> dataSourceClientRequests;
+    HashSet<Integer> hashSetSubscribed;
 
     public static NotificationManager getInstance(Context context) {
         if (instance == null) instance = new NotificationManager(context);
@@ -63,7 +69,7 @@ public class NotificationManager {
     }
 
 
-    void prepareNotificationHashMap() {
+    void prepareNotificationHashMap() throws DataKitException {
         notificationHashMap = new HashMap<>();
         notificationHashMap.put(MicrosoftBandMessage.class.getSimpleName(), new MicrosoftBandMessage(context, callback));
         notificationHashMap.put(MicrosoftBandVibrate.class.getSimpleName(), new MicrosoftBandVibrate(context, callback));
@@ -77,17 +83,21 @@ public class NotificationManager {
     Callback1 callback = new Callback1() {
         @Override
         public void onResponse(NotificationRequest notificationRequest, String status) {
-            Log.d(TAG, "onResponse=" + status);
-            stopAll();
-            if (status.equals(NotificationAcknowledge.DELAY)) {
-                Log.d(TAG,"notification ack=DELAY");
-                notificationHashMap.get(PhoneNotification.class.getSimpleName()).start(notificationRequest);
+            try {
+                Log.d(TAG, "onResponse=" + status);
+                stopAll();
+                if (status.equals(NotificationAcknowledge.DELAY)) {
+                    Log.d(TAG, "notification ack=DELAY");
+                    notificationHashMap.get(PhoneNotification.class.getSimpleName()).start(notificationRequest);
+                }
+                insertToDataKit(notificationRequest, status);
+            } catch (DataKitException e) {
+                stopService();
             }
-            insertToDataKit(notificationRequest, status);
         }
     };
 
-    void insertToDataKit(NotificationRequest notificationRequest, String status) {
+    void insertToDataKit(NotificationRequest notificationRequest, String status) throws DataKitException {
         Gson gson = new Gson();
         NotificationAcknowledge notificationAcknowledge = new NotificationAcknowledge();
         notificationAcknowledge.setNotificationRequest(notificationRequest);
@@ -108,39 +118,58 @@ public class NotificationManager {
     Runnable runnableSubscribe = new Runnable() {
         @Override
         public void run() {
-            DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST);
-            dataSourceClientRequests = DataKitAPI.getInstance(context).find(dataSourceBuilder);
-            Log.d(TAG, "DataSourceClients...size=" + dataSourceClientRequests.size());
-            if (dataSourceClientRequests.size() == 0) {
-                handlerSubscribe.postDelayed(this, 1000);
-            } else {
+            try {
+                DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST);
+                dataSourceClientRequests = DataKitAPI.getInstance(context).find(dataSourceBuilder);
                 for (int i = 0; i < dataSourceClientRequests.size(); i++) {
+                    int ds_id = dataSourceClientRequests.get(i).getDs_id();
+                    if (hashSetSubscribed.contains(ds_id)) continue;
+                    hashSetSubscribed.add(ds_id);
                     DataKitAPI.getInstance(context).subscribe(dataSourceClientRequests.get(i), new OnReceiveListener() {
                         @Override
                         public void onReceived(DataType dataType) {
-                            DataTypeJSONObject dataTypeJSONObject = (DataTypeJSONObject) dataType;
-                            Gson gson = new Gson();
-                            NotificationRequest notificationRequest = gson.fromJson(dataTypeJSONObject.getSample().toString(), NotificationRequest.class);
-                            String notificationString = getNotificationString(notificationRequest);
-                            if (notificationString != null) {
-                                notificationHashMap.get(notificationString).start(notificationRequest);
+                            try {
+                                DataTypeJSONObject dataTypeJSONObject = (DataTypeJSONObject) dataType;
+                                Gson gson = new Gson();
+                                NotificationRequest notificationRequest = gson.fromJson(dataTypeJSONObject.getSample().toString(), NotificationRequest.class);
+                                String notificationString = getNotificationString(notificationRequest);
+                                if (notificationString != null) {
+                                    notificationHashMap.get(notificationString).start(notificationRequest);
+                                }
+                            } catch (DataKitException e) {
+                                stopService();
                             }
                         }
                     });
                 }
-
+                handlerSubscribe.postDelayed(this, 1000);
+            } catch (DataKitException e) {
+                stopService();
             }
         }
     };
 
     NotificationManager(Context context) {
-        Log.d(TAG, "Constructor()");
-        this.context = context;
-        prepareNotificationHashMap();
-        DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_ACKNOWLEDGE);
-        dataSourceClientAcknowledge = DataKitAPI.getInstance(context).register(dataSourceBuilder);
-        handlerSubscribe = new Handler();
-        handlerSubscribe.post(runnableSubscribe);
+        try {
+            Log.d(TAG, "Constructor()");
+            this.context = context;
+            prepareNotificationHashMap();
+            hashSetSubscribed = new HashSet<>();
+            DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_ACKNOWLEDGE);
+            dataSourceClientAcknowledge = DataKitAPI.getInstance(context).register(dataSourceBuilder);
+            handlerSubscribe = new Handler();
+            handlerSubscribe.post(runnableSubscribe);
+        } catch (DataKitException e) {
+            stopService();
+        }
+    }
+    void stopService(){
+        stopAll();
+        Intent intent = new Intent(ServiceNotificationManager.INTENT_NAME);
+        // You can also include some extra data.
+        intent.putExtra(ServiceNotificationManager.STATUS,"STOP");
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+
     }
 
     String getNotificationString(NotificationRequest notificationRequest) {
@@ -174,14 +203,17 @@ public class NotificationManager {
     }
 
     public void clear() {
-//        cancelAlert();
-//        notifications.clear();
-        stopAll();
-        handlerSubscribe.removeCallbacks(runnableSubscribe);
-        for (int i = 0; i < dataSourceClientRequests.size(); i++)
-            DataKitAPI.getInstance(context).unsubscribe(dataSourceClientRequests.get(i));
-        DataKitAPI.getInstance(context).unregister(dataSourceClientAcknowledge);
-        instance = null;
+        try {
+            stopAll();
+            handlerSubscribe.removeCallbacks(runnableSubscribe);
+            for (int i = 0; i < dataSourceClientRequests.size(); i++)
+                DataKitAPI.getInstance(context).unsubscribe(dataSourceClientRequests.get(i));
+            DataKitAPI.getInstance(context).unregister(dataSourceClientAcknowledge);
+            hashSetSubscribed.clear();
+            instance = null;
+        } catch (DataKitException e) {
+            stopService();
+        }
     }
  /*   public void setNotificationManager(NotificationConfig notificationConfig){
         clear();

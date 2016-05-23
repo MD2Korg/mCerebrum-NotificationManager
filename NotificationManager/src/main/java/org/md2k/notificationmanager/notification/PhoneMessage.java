@@ -54,7 +54,7 @@ public class PhoneMessage extends Notification {
 
     void showAlertDialog() {
         int msgNo = 0;
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(context, android.support.v7.appcompat.R.style.AlertDialog_AppCompat_Light));
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(context, android.R.style.Theme_Holo_Light_Dialog));
         alertDialogBuilder.setTitle(notificationRequest.getMessage()[msgNo++]).setMessage(notificationRequest.getMessage()[msgNo++]);
         alertDialogBuilder.setIcon(ContextCompat.getDrawable(context, org.md2k.utilities.R.drawable.ic_warning_grey_50dp));
 

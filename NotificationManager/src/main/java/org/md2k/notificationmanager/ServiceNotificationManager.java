@@ -1,11 +1,16 @@
 package org.md2k.notificationmanager;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
 
 import org.md2k.datakitapi.DataKitAPI;
+import org.md2k.datakitapi.exception.DataKitException;
 import org.md2k.datakitapi.messagehandler.OnConnectionListener;
 import org.md2k.datakitapi.messagehandler.OnExceptionListener;
 import org.md2k.datakitapi.status.Status;
@@ -41,30 +46,44 @@ import org.md2k.utilities.Report.Log;
 
 public class ServiceNotificationManager extends Service {
     private static final String TAG = ServiceNotificationManager.class.getSimpleName();
+    public static final String STATUS = "STATUS";
     DataKitAPI dataKitAPI;
+    public static final String INTENT_NAME=ServiceNotificationManager.class.getSimpleName();
     NotificationManager notificationManager;
 
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "onCreate()");
-        connectDataKit();
+        try {
+            connectDataKit();
+        } catch (DataKitException e) {
+            stopSelf();
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
+                new IntentFilter(INTENT_NAME));
     }
-    private void connectDataKit() {
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Get extra data included in the Intent
+            String message = intent.getStringExtra(STATUS);
+            if(message.equals("STOP")){
+                stopSelf();
+            }
+            Log.d("receiver", "Got message: " + message);
+        }
+    };
+
+
+    private void connectDataKit() throws DataKitException {
         Log.d(TAG, "connectDataKit()...");
         dataKitAPI = DataKitAPI.getInstance(this);
         dataKitAPI.connect(new OnConnectionListener() {
             @Override
             public void onConnected() {
-                Toast.makeText(getApplicationContext(), "Notification Manager started Successfully", Toast.LENGTH_LONG).show();
+//                Toast.makeText(getApplicationContext(), "Notification Manager started Successfully", Toast.LENGTH_LONG).show();
                 notificationManager = NotificationManager.getInstance(ServiceNotificationManager.this);
 
-            }
-        }, new OnExceptionListener() {
-            @Override
-            public void onException(Status status) {
-                android.util.Log.d(TAG, "onException...");
-                Toast.makeText(ServiceNotificationManager.this, "Notification Managr.. Stopped. Error: " + status.getStatusMessage(), Toast.LENGTH_LONG).show();
-                stopSelf();
             }
         });
     }
@@ -74,8 +93,7 @@ public class ServiceNotificationManager extends Service {
         Log.d(TAG, "onDestroy()...");
         notificationManager.clear();
         if (dataKitAPI != null && dataKitAPI.isConnected()) dataKitAPI.disconnect();
-        if (dataKitAPI != null)
-            dataKitAPI.close();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
     }
 
@@ -83,4 +101,5 @@ public class ServiceNotificationManager extends Service {
     public IBinder onBind(Intent intent) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
+
 }

@@ -2,6 +2,7 @@ package org.md2k.notificationmanager.notification;
 
 import android.content.Context;
 
+import org.md2k.datakitapi.exception.DataKitException;
 import org.md2k.utilities.data_format.NotificationRequest;
 
 
@@ -15,6 +16,6 @@ public abstract class Notification {
     Notification(Context context, Callback1 callback){
         this.context=context;this.callback = callback;
     }
-    public abstract void start(NotificationRequest notificationRequest);
+    public abstract void start(NotificationRequest notificationRequest) throws DataKitException;
     public abstract void stop();
 }

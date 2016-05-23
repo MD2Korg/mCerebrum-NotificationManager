@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 
 import org.md2k.datakitapi.DataKitAPI;
 import org.md2k.datakitapi.datatype.DataTypeJSONObject;
+import org.md2k.datakitapi.exception.DataKitException;
 import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
 import org.md2k.datakitapi.source.datasource.DataSourceClient;
 import org.md2k.datakitapi.source.datasource.DataSourceType;
@@ -44,13 +45,13 @@ public class MicrosoftBandVibrate extends Notification {
     private static final String TAG = MicrosoftBandVibrate.class.getSimpleName() ;
     Context context;
     DataSourceClient dataSourceClient;
-    MicrosoftBandVibrate(Context context, Callback1 callback){
+    MicrosoftBandVibrate(Context context, Callback1 callback) throws DataKitException {
         super(context, callback);
         DataSourceBuilder dataSourceBuilder=new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST);
         dataSourceClient= DataKitAPI.getInstance(context).register(dataSourceBuilder);
     }
     @Override
-    public void start(NotificationRequest notificationRequest) {
+    public void start(NotificationRequest notificationRequest) throws DataKitException {
         this.notificationRequest=notificationRequest;
         vibrate();
     }
@@ -60,7 +61,7 @@ public class MicrosoftBandVibrate extends Notification {
 
     }
 
-    void vibrate(){
+    void vibrate() throws DataKitException {
         Gson gson=new Gson();
         JsonObject sample = new JsonParser().parse(gson.toJson(notificationRequest)).getAsJsonObject();
         DataTypeJSONObject dataTypeJSONObject = new DataTypeJSONObject(DateTime.getDateTime(), sample);
