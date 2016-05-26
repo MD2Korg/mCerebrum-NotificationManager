@@ -17,7 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/app_theme_teal_light"
         tools:replace="android:theme">
-        <activity android:name=".ActivityMain">
+        <activity
+            android:name=".ActivityMain"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
