@@ -2,7 +2,9 @@ package org.md2k.notificationmanager.notification;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
@@ -12,6 +14,7 @@ import com.google.gson.JsonParser;
 import org.md2k.datakitapi.DataKitAPI;
 import org.md2k.datakitapi.datatype.DataType;
 import org.md2k.datakitapi.datatype.DataTypeJSONObject;
+import org.md2k.datakitapi.datatype.DataTypeJSONObjectArray;
 import org.md2k.datakitapi.exception.DataKitException;
 import org.md2k.datakitapi.messagehandler.OnReceiveListener;
 import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
@@ -21,8 +24,8 @@ import org.md2k.datakitapi.source.platform.PlatformType;
 import org.md2k.datakitapi.time.DateTime;
 import org.md2k.notificationmanager.ServiceNotificationManager;
 import org.md2k.utilities.Report.Log;
-import org.md2k.utilities.data_format.NotificationAcknowledge;
 import org.md2k.utilities.data_format.NotificationRequest;
+import org.md2k.utilities.data_format.NotificationResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,9 +62,11 @@ public class NotificationManager {
     Context context;
     private static NotificationManager instance = null;
     HashMap<String, Notification> notificationHashMap;
-    DataSourceClient dataSourceClientAcknowledge;
-    ArrayList<DataSourceClient> dataSourceClientRequests;
     HashSet<Integer> hashSetSubscribed;
+    DataSourceClient dataSourceClientAcknowledge;
+    DataSourceClient dataSourceClientResponse;
+    ArrayList<DataSourceClient> dataSourceClientRequests;
+    Handler handlerSubscribe;
 
     public static NotificationManager getInstance(Context context) {
         if (instance == null) instance = new NotificationManager(context);
@@ -86,9 +91,13 @@ public class NotificationManager {
             try {
                 Log.d(TAG, "onResponse=" + status);
                 stopAll();
-                if (status.equals(NotificationAcknowledge.DELAY)) {
+                if (status.equals(NotificationResponse.DELAY)) {
                     Log.d(TAG, "notification ack=DELAY");
+                    if (notificationRequest.getResponse_action().getType().equals("MESSAGE"))
+                        notificationHashMap.get(PhoneMessage.class.getSimpleName()).start(notificationRequest.getResponse_action());
+//                    if (notificationRequest.getResponse_action().getType().equals("NOTIFICATION"))
                     notificationHashMap.get(PhoneNotification.class.getSimpleName()).start(notificationRequest);
+
                 }
                 insertToDataKit(notificationRequest, status);
             } catch (DataKitException e) {
@@ -99,14 +108,13 @@ public class NotificationManager {
 
     void insertToDataKit(NotificationRequest notificationRequest, String status) throws DataKitException {
         Gson gson = new Gson();
-        NotificationAcknowledge notificationAcknowledge = new NotificationAcknowledge();
-        notificationAcknowledge.setNotificationRequest(notificationRequest);
-        notificationAcknowledge.setStatus(status);
-        JsonObject sample = new JsonParser().parse(gson.toJson(notificationAcknowledge)).getAsJsonObject();
+        NotificationResponse notificationResponse = new NotificationResponse();
+        notificationResponse.setNotificationRequest(notificationRequest);
+        notificationResponse.setStatus(status);
+        JsonObject sample = new JsonParser().parse(gson.toJson(notificationResponse)).getAsJsonObject();
         DataTypeJSONObject dataTypeJSONObject = new DataTypeJSONObject(DateTime.getDateTime(), sample);
-        DataKitAPI.getInstance(context).insert(dataSourceClientAcknowledge, dataTypeJSONObject);
+        DataKitAPI.getInstance(context).insert(dataSourceClientResponse, dataTypeJSONObject);
     }
-
 
     public void stopAll() {
         for (HashMap.Entry<String, Notification> entry : notificationHashMap.entrySet()) {
@@ -114,7 +122,8 @@ public class NotificationManager {
         }
     }
 
-    Handler handlerSubscribe;
+    int RETRY = 60;
+
     Runnable runnableSubscribe = new Runnable() {
         @Override
         public void run() {
@@ -122,30 +131,58 @@ public class NotificationManager {
                 DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_REQUEST);
                 dataSourceClientRequests = DataKitAPI.getInstance(context).find(dataSourceBuilder);
                 for (int i = 0; i < dataSourceClientRequests.size(); i++) {
+                    if(dataSourceClientRequests.get(i).getDataSource().getApplication().getId().equals("org.md2k.notificationmanager")) continue;
                     int ds_id = dataSourceClientRequests.get(i).getDs_id();
                     if (hashSetSubscribed.contains(ds_id)) continue;
                     hashSetSubscribed.add(ds_id);
                     DataKitAPI.getInstance(context).subscribe(dataSourceClientRequests.get(i), new OnReceiveListener() {
                         @Override
-                        public void onReceived(DataType dataType) {
-                            try {
-                                DataTypeJSONObject dataTypeJSONObject = (DataTypeJSONObject) dataType;
-                                Gson gson = new Gson();
-                                NotificationRequest notificationRequest = gson.fromJson(dataTypeJSONObject.getSample().toString(), NotificationRequest.class);
-                                String notificationString = getNotificationString(notificationRequest);
-                                if (notificationString != null) {
-                                    notificationHashMap.get(notificationString).start(notificationRequest);
+                        public void onReceived(final DataType dataType) {
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.d(TAG, "notification request...received...");
+                                    DataTypeJSONObjectArray dataTypeJSONObjectArray = (DataTypeJSONObjectArray) dataType;
+                                    Message msg = new Message();
+                                    Bundle bundle = new Bundle();
+                                    bundle.putParcelable(DataTypeJSONObjectArray.class.getSimpleName(), dataTypeJSONObjectArray);
+                                    msg.setData(bundle);
+                                    handler.sendMessage(msg);
                                 }
-                            } catch (DataKitException e) {
-                                stopService();
-                            }
+                            }).start();
                         }
                     });
                 }
-                handlerSubscribe.postDelayed(this, 1000);
+                if (RETRY > 0) {
+                    RETRY--;
+                    handlerSubscribe.postDelayed(this, 1000);
+                }
             } catch (DataKitException e) {
                 stopService();
             }
+        }
+    };
+    private Handler handler = new Handler() {
+        public void handleMessage(Message message) {
+            try {
+                Log.d(TAG, "notification request...onReceive...()..");
+                DataTypeJSONObjectArray dataTypeJSONObjectArray = message.getData().getParcelable(DataTypeJSONObjectArray.class.getSimpleName());
+                DataKitAPI.getInstance(context).insert(dataSourceClientAcknowledge, dataTypeJSONObjectArray);
+                stopAll();
+                Gson gson = new Gson();
+                assert dataTypeJSONObjectArray != null;
+                for (int i = 0; i < dataTypeJSONObjectArray.getSample().size(); i++) {
+                    NotificationRequest notificationRequest = gson.fromJson(dataTypeJSONObjectArray.getSample().get(i).toString(), NotificationRequest.class);
+                    String notificationString = getNotificationString(notificationRequest);
+                    if (notificationString != null) {
+                        notificationHashMap.get(notificationString).start(notificationRequest);
+                    }
+                }
+            } catch (DataKitException e) {
+                Log.e(TAG, "Exception: DataKitException..." + e.getMessage());
+                stopService();
+            }
+
         }
     };
 
@@ -155,19 +192,22 @@ public class NotificationManager {
             this.context = context;
             prepareNotificationHashMap();
             hashSetSubscribed = new HashSet<>();
-            DataSourceBuilder dataSourceBuilder = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_ACKNOWLEDGE);
-            dataSourceClientAcknowledge = DataKitAPI.getInstance(context).register(dataSourceBuilder);
+            DataSourceBuilder dataSourceBuilderA = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_ACKNOWLEDGE);
+            dataSourceClientAcknowledge = DataKitAPI.getInstance(context).register(dataSourceBuilderA);
+            DataSourceBuilder dataSourceBuilderR = new DataSourceBuilder().setType(DataSourceType.NOTIFICATION_RESPONSE);
+            dataSourceClientResponse = DataKitAPI.getInstance(context).register(dataSourceBuilderR);
             handlerSubscribe = new Handler();
             handlerSubscribe.post(runnableSubscribe);
         } catch (DataKitException e) {
             stopService();
         }
     }
-    void stopService(){
+
+    void stopService() {
         stopAll();
         Intent intent = new Intent(ServiceNotificationManager.INTENT_NAME);
         // You can also include some extra data.
-        intent.putExtra(ServiceNotificationManager.STATUS,"STOP");
+        intent.putExtra(ServiceNotificationManager.STATUS, "STOP");
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
     }
@@ -209,6 +249,7 @@ public class NotificationManager {
             for (int i = 0; i < dataSourceClientRequests.size(); i++)
                 DataKitAPI.getInstance(context).unsubscribe(dataSourceClientRequests.get(i));
             DataKitAPI.getInstance(context).unregister(dataSourceClientAcknowledge);
+            DataKitAPI.getInstance(context).unregister(dataSourceClientResponse);
             hashSetSubscribed.clear();
             instance = null;
         } catch (DataKitException e) {

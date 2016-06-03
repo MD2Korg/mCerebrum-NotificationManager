@@ -101,5 +101,4 @@ public class ServiceNotificationManager extends Service {
     public IBinder onBind(Intent intent) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
-
 }

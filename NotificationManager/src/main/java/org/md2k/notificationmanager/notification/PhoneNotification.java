@@ -9,8 +9,8 @@ import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 
 import org.md2k.utilities.Report.Log;
-import org.md2k.utilities.data_format.NotificationAcknowledge;
 import org.md2k.utilities.data_format.NotificationRequest;
+import org.md2k.utilities.data_format.NotificationResponse;
 
 /**
  * Created by monowar on 3/13/16.
@@ -54,7 +54,7 @@ public class PhoneNotification extends Notification {
         isRegistered=true;
         showNotification();
         Log.d(TAG,"duration="+notificationRequest.getDuration());
-        handler.postDelayed(runnableStop, notificationRequest.getResponse_option().getDelay_time());
+        handler.postDelayed(runnableStop, notificationRequest.getResponse_action().getDuration());
     }
     private BroadcastReceiver receiverStartNow = new BroadcastReceiver()
     {
@@ -63,7 +63,7 @@ public class PhoneNotification extends Notification {
         {
             String action = intent.getAction();
             Log.d(TAG,"delay stopped");
-            callback.onResponse(notificationRequest, NotificationAcknowledge.DELAY_CANCEL);
+            callback.onResponse(notificationRequest, NotificationResponse.DELAY_CANCEL);
         }
     };
     Runnable runnableStop = new Runnable() {

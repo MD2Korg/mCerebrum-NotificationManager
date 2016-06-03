@@ -9,7 +9,7 @@ import android.support.v7.view.ContextThemeWrapper;
 import android.view.WindowManager;
 
 import org.md2k.utilities.Report.Log;
-import org.md2k.utilities.data_format.NotificationAcknowledge;
+import org.md2k.utilities.data_format.NotificationResponse;
 import org.md2k.utilities.data_format.NotificationRequest;
 
 /**
@@ -36,7 +36,7 @@ public class PhoneMessage extends Notification {
         alertDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                callback.onResponse(notificationRequest, NotificationAcknowledge.CANCEL);
+                callback.onResponse(notificationRequest, NotificationResponse.CANCEL);
             }
         });
         alertDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -54,6 +54,7 @@ public class PhoneMessage extends Notification {
 
     void showAlertDialog() {
         int msgNo = 0;
+        Log.d(TAG,"show_alert_dialog...");
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(context, android.R.style.Theme_Holo_Light_Dialog));
         alertDialogBuilder.setTitle(notificationRequest.getMessage()[msgNo++]).setMessage(notificationRequest.getMessage()[msgNo++]);
         alertDialogBuilder.setIcon(ContextCompat.getDrawable(context, org.md2k.utilities.R.drawable.ic_warning_grey_50dp));
@@ -62,7 +63,7 @@ public class PhoneMessage extends Notification {
             alertDialogBuilder.setNegativeButton(notificationRequest.getMessage()[msgNo++], new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    callback.onResponse(notificationRequest, NotificationAcknowledge.OK);
+                    callback.onResponse(notificationRequest, NotificationResponse.OK);
                 }
             });
         }
@@ -79,15 +80,13 @@ public class PhoneMessage extends Notification {
             alertDialogBuilder.setPositiveButton(notificationRequest.getMessage()[msgNo], new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    if (notificationRequest.getResponse_option().getDelay_time() == -1) {
+                    if (notificationRequest.getDuration() == -1) {
                         showAlertDialogDelayOption();
-
                     } else
-                        callback.onResponse(notificationRequest, NotificationAcknowledge.DELAY);
+                        callback.onResponse(notificationRequest, NotificationResponse.DELAY);
                 }
             });
         }
-
         alertDialog = alertDialogBuilder.create();
         alertDialog.setCancelable(false);
         alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
@@ -102,22 +101,21 @@ public class PhoneMessage extends Notification {
             public void onClick(DialogInterface dialog, int item) {
                 switch (item) {
                     case 0:
-                        notificationRequest.getResponse_option().setDelay_time(900000);
-                        callback.onResponse(notificationRequest, NotificationAcknowledge.DELAY);
+                        notificationRequest.setDuration(900000);
+                        callback.onResponse(notificationRequest, NotificationResponse.DELAY);
                         break;
                     case 1:
-                        notificationRequest.getResponse_option().setDelay_time(1800000);
-                        callback.onResponse(notificationRequest, NotificationAcknowledge.DELAY);
+                        notificationRequest.setDuration(1800000);
+                        callback.onResponse(notificationRequest, NotificationResponse.DELAY);
                         break;
                     case 2:
-                        notificationRequest.getResponse_option().setDelay_time(3600000);
-                        callback.onResponse(notificationRequest, NotificationAcknowledge.DELAY);
+                        notificationRequest.setDuration(3600000);
+                        callback.onResponse(notificationRequest, NotificationResponse.DELAY);
                         break;
                     case 3:
-                        notificationRequest.getResponse_option().setDelay_time(7200000);
-                        callback.onResponse(notificationRequest, NotificationAcknowledge.DELAY);
+                        notificationRequest.setDuration(7200000);
+                        callback.onResponse(notificationRequest, NotificationResponse.DELAY);
                         break;
-
                 }
                 alertDialogDelayOptions.dismiss();
             }
@@ -139,7 +137,7 @@ public class PhoneMessage extends Notification {
     Runnable runnableStop = new Runnable() {
         @Override
         public void run() {
-            callback.onResponse(notificationRequest, NotificationAcknowledge.TIMEOUT);
+            callback.onResponse(notificationRequest, NotificationResponse.TIMEOUT);
             stop();
         }
     };
