@@ -9,8 +9,8 @@ import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 
 import org.md2k.utilities.Report.Log;
-import org.md2k.utilities.data_format.NotificationRequest;
-import org.md2k.utilities.data_format.NotificationResponse;
+import org.md2k.utilities.data_format.notification.NotificationRequest;
+import org.md2k.utilities.data_format.notification.NotificationResponse;
 
 /**
  * Created by monowar on 3/13/16.

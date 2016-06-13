@@ -1,6 +1,7 @@
 package org.md2k.notificationmanager.notification;
 
-import org.md2k.utilities.data_format.NotificationRequest;
+
+import org.md2k.utilities.data_format.notification.NotificationRequest;
 
 import java.io.Serializable;
 

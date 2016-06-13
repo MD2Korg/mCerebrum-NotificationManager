@@ -7,7 +7,7 @@ import android.net.Uri;
 import android.os.Handler;
 
 import org.md2k.notificationmanager.Constants;
-import org.md2k.utilities.data_format.NotificationRequest;
+import org.md2k.utilities.data_format.notification.NotificationRequest;
 
 import java.io.IOException;
 

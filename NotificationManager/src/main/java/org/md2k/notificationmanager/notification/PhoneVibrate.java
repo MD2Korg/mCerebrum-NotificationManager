@@ -5,7 +5,7 @@ import android.os.Handler;
 import android.os.Vibrator;
 
 import org.md2k.utilities.Report.Log;
-import org.md2k.utilities.data_format.NotificationRequest;
+import org.md2k.utilities.data_format.notification.NotificationRequest;
 
 /**
  * Created by monowar on 3/13/16.

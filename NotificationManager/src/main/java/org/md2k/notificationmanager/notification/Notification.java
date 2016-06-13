@@ -3,8 +3,7 @@ package org.md2k.notificationmanager.notification;
 import android.content.Context;
 
 import org.md2k.datakitapi.exception.DataKitException;
-import org.md2k.utilities.data_format.NotificationRequest;
-
+import org.md2k.utilities.data_format.notification.NotificationRequest;
 
 /**
  * Created by monowar on 3/13/16.

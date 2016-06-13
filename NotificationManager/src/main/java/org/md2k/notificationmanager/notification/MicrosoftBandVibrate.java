@@ -13,7 +13,8 @@ import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
 import org.md2k.datakitapi.source.datasource.DataSourceClient;
 import org.md2k.datakitapi.source.datasource.DataSourceType;
 import org.md2k.datakitapi.time.DateTime;
-import org.md2k.utilities.data_format.NotificationRequest;
+import org.md2k.utilities.data_format.notification.NotificationRequest;
+import org.md2k.utilities.data_format.notification.NotificationRequests;
 
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
@@ -63,7 +64,9 @@ public class MicrosoftBandVibrate extends Notification {
 
     void vibrate() throws DataKitException {
         Gson gson=new Gson();
-        JsonObject sample = new JsonParser().parse(gson.toJson(notificationRequest)).getAsJsonObject();
+        NotificationRequests notificationRequests=new NotificationRequests();
+        notificationRequests.getNotification_option().add(notificationRequest);
+        JsonObject sample = new JsonParser().parse(gson.toJson(notificationRequests)).getAsJsonObject();
         DataTypeJSONObject dataTypeJSONObject = new DataTypeJSONObject(DateTime.getDateTime(), sample);
         DataKitAPI.getInstance(context).insert(dataSourceClient,dataTypeJSONObject);
     }

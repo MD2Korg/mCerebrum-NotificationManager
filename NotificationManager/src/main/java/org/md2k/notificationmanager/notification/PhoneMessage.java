@@ -9,8 +9,8 @@ import android.support.v7.view.ContextThemeWrapper;
 import android.view.WindowManager;
 
 import org.md2k.utilities.Report.Log;
-import org.md2k.utilities.data_format.NotificationResponse;
-import org.md2k.utilities.data_format.NotificationRequest;
+import org.md2k.utilities.data_format.notification.NotificationRequest;
+import org.md2k.utilities.data_format.notification.NotificationResponse;
 
 /**
  * Created by monowar on 3/13/16.

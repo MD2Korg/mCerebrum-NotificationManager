@@ -14,7 +14,6 @@ import com.google.gson.JsonParser;
 import org.md2k.datakitapi.DataKitAPI;
 import org.md2k.datakitapi.datatype.DataType;
 import org.md2k.datakitapi.datatype.DataTypeJSONObject;
-import org.md2k.datakitapi.datatype.DataTypeJSONObjectArray;
 import org.md2k.datakitapi.exception.DataKitException;
 import org.md2k.datakitapi.messagehandler.OnReceiveListener;
 import org.md2k.datakitapi.source.datasource.DataSourceBuilder;
@@ -24,8 +23,9 @@ import org.md2k.datakitapi.source.platform.PlatformType;
 import org.md2k.datakitapi.time.DateTime;
 import org.md2k.notificationmanager.ServiceNotificationManager;
 import org.md2k.utilities.Report.Log;
-import org.md2k.utilities.data_format.NotificationRequest;
-import org.md2k.utilities.data_format.NotificationResponse;
+import org.md2k.utilities.data_format.notification.NotificationRequest;
+import org.md2k.utilities.data_format.notification.NotificationRequests;
+import org.md2k.utilities.data_format.notification.NotificationResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -142,10 +142,10 @@ public class NotificationManager {
                                 @Override
                                 public void run() {
                                     Log.d(TAG, "notification request...received...");
-                                    DataTypeJSONObjectArray dataTypeJSONObjectArray = (DataTypeJSONObjectArray) dataType;
+                                    DataTypeJSONObject dataTypeJSONObject = (DataTypeJSONObject) dataType;
                                     Message msg = new Message();
                                     Bundle bundle = new Bundle();
-                                    bundle.putParcelable(DataTypeJSONObjectArray.class.getSimpleName(), dataTypeJSONObjectArray);
+                                    bundle.putParcelable(DataTypeJSONObject.class.getSimpleName(), dataTypeJSONObject);
                                     msg.setData(bundle);
                                     handler.sendMessage(msg);
                                 }
@@ -166,16 +166,17 @@ public class NotificationManager {
         public void handleMessage(Message message) {
             try {
                 Log.d(TAG, "notification request...onReceive...()..");
-                DataTypeJSONObjectArray dataTypeJSONObjectArray = message.getData().getParcelable(DataTypeJSONObjectArray.class.getSimpleName());
-                DataKitAPI.getInstance(context).insert(dataSourceClientAcknowledge, dataTypeJSONObjectArray);
+                DataTypeJSONObject dataTypeJSONObject = message.getData().getParcelable(DataTypeJSONObject.class.getSimpleName());
+                DataKitAPI.getInstance(context).insert(dataSourceClientAcknowledge, dataTypeJSONObject);
                 stopAll();
                 Gson gson = new Gson();
-                assert dataTypeJSONObjectArray != null;
-                for (int i = 0; i < dataTypeJSONObjectArray.getSample().size(); i++) {
-                    NotificationRequest notificationRequest = gson.fromJson(dataTypeJSONObjectArray.getSample().get(i).toString(), NotificationRequest.class);
-                    String notificationString = getNotificationString(notificationRequest);
+                assert dataTypeJSONObject != null;
+                NotificationRequests notificationRequests = gson.fromJson(dataTypeJSONObject.getSample().toString(), NotificationRequests.class);
+
+                for (int i = 0; i < notificationRequests.getNotification_option().size(); i++) {
+                    String notificationString = getNotificationString(notificationRequests.getNotification_option().get(i));
                     if (notificationString != null) {
-                        notificationHashMap.get(notificationString).start(notificationRequest);
+                        notificationHashMap.get(notificationString).start(notificationRequests.getNotification_option().get(i));
                     }
                 }
             } catch (DataKitException e) {
