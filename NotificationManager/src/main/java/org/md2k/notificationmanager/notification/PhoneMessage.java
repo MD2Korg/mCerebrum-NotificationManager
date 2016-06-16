@@ -3,10 +3,15 @@ package org.md2k.notificationmanager.notification;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.view.ContextThemeWrapper;
+import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.TextView;
 
 import org.md2k.utilities.Report.Log;
 import org.md2k.utilities.data_format.notification.NotificationRequest;
@@ -29,7 +34,7 @@ public class PhoneMessage extends Notification {
     }
 
     void showAlertDialogCancel(String msg) {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(context, org.md2k.utilities.R.style.app_theme_teal_light_dialog));
         alertDialogBuilder.setTitle("Cancel " + msg);
         alertDialogBuilder.setMessage("Are you sure you want to cancel?");
         alertDialogBuilder.setIcon(ContextCompat.getDrawable(context, org.md2k.utilities.R.drawable.ic_error_red_50dp));
@@ -50,12 +55,47 @@ public class PhoneMessage extends Notification {
         alertDialogCancel.setCancelable(false);
         alertDialogCancel.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         alertDialogCancel.show();
+        setAlertDialogStyle(context, alertDialogCancel);
+    }
+    private void setAlertDialogStyle(Context context, AlertDialog alertDialog){
+        int titleDividerId = alertDialog.getContext().getResources().getIdentifier("titleDivider", "id", "android");
+        View titleDivider = alertDialog.getWindow().getDecorView().findViewById(titleDividerId);
+        if (titleDivider != null) {
+            titleDivider.setBackgroundColor(ContextCompat.getColor(context, org.md2k.utilities.R.color.deeporange_100));
+            titleDivider.setVisibility(View.VISIBLE);
+        }
+        int textViewId = alertDialog.getContext().getResources().getIdentifier("android:id/alertTitle", null, null);
+        TextView tv = (TextView) alertDialog.findViewById(textViewId);
+        tv.setTextColor(ContextCompat.getColor(context, org.md2k.utilities.R.color.teal_700));
+
+        int textViewMsgId = alertDialog.getContext().getResources().getIdentifier("android:id/message", null, null);
+        TextView tvMsg = (TextView) alertDialog.findViewById(textViewMsgId);
+        if(tvMsg!=null) {
+            tvMsg.setTextSize(16);
+            tvMsg.setGravity(Gravity.CENTER);
+            tvMsg.setTextColor(ContextCompat.getColor(context, org.md2k.utilities.R.color.black));
+        }
+        Button b = alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+        if(b != null){
+            b.setTextColor(ContextCompat.getColor(context, org.md2k.utilities.R.color.teal_700));
+            b.setTypeface(null, Typeface.BOLD);
+        }
+        b = alertDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        if(b != null){
+            b.setTextColor(ContextCompat.getColor(context, org.md2k.utilities.R.color.teal_700));
+            b.setTypeface(null, Typeface.BOLD);
+        }
+        b = alertDialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+        if(b != null){
+            b.setTextColor(ContextCompat.getColor(context, org.md2k.utilities.R.color.teal_700));
+            b.setTypeface(null, Typeface.BOLD);
+        }
     }
 
     void showAlertDialog() {
         int msgNo = 0;
         Log.d(TAG,"show_alert_dialog...");
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(context, android.R.style.Theme_Holo_Light_Dialog));
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(context, org.md2k.utilities.R.style.app_theme_teal_light_dialog));
         alertDialogBuilder.setTitle(notificationRequest.getMessage()[msgNo++]).setMessage(notificationRequest.getMessage()[msgNo++]);
         alertDialogBuilder.setIcon(ContextCompat.getDrawable(context, org.md2k.utilities.R.drawable.ic_warning_grey_50dp));
 
@@ -91,11 +131,12 @@ public class PhoneMessage extends Notification {
         alertDialog.setCancelable(false);
         alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         alertDialog.show();
+        setAlertDialogStyle(context, alertDialog);
     }
 
     void showAlertDialogDelayOption() {
         final CharSequence[] items = {"15 Minutes", "30 Minutes", "1 Hour", "2 Hours"};
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(context, org.md2k.utilities.R.style.app_theme_teal_light_dialog));
         alertDialogBuilder.setTitle("Delay Option");
         alertDialogBuilder.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int item) {
@@ -124,6 +165,7 @@ public class PhoneMessage extends Notification {
         alertDialogDelayOptions.setCancelable(false);
         alertDialogDelayOptions.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         alertDialogDelayOptions.show();
+        setAlertDialogStyle(context, alertDialogDelayOptions);
     }
 
     @Override
