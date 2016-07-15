@@ -187,10 +187,14 @@ public class PhoneMessage extends Notification {
     @Override
     public void stop() {
         Log.d(TAG, "PhoneMessage..stop()");
-        if (alertDialog != null)
+        if (alertDialog != null) {
             alertDialog.dismiss();
-        if (alertDialogCancel != null)
+            alertDialog = null;
+        }
+        if (alertDialogCancel != null) {
             alertDialogCancel.dismiss();
+            alertDialogCancel=null;
+        }
         handler.removeCallbacks(runnableStop);
     }
 }

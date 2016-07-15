@@ -61,7 +61,6 @@ public class PhoneNotification extends Notification {
         @Override
         public void onReceive(Context context, Intent intent)
         {
-            String action = intent.getAction();
             Log.d(TAG,"delay stopped");
             callback.onResponse(notificationRequest, NotificationResponse.DELAY_CANCEL);
         }

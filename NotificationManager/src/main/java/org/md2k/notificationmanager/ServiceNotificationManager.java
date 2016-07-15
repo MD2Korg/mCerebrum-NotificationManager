@@ -83,7 +83,7 @@ public class ServiceNotificationManager extends Service {
             @Override
             public void onConnected() {
 //                Toast.makeText(getApplicationContext(), "Notification Manager started Successfully", Toast.LENGTH_LONG).show();
-                notificationManager = NotificationManager.getInstance(ServiceNotificationManager.this);
+                notificationManager = new NotificationManager(ServiceNotificationManager.this);
             }
         });
     }

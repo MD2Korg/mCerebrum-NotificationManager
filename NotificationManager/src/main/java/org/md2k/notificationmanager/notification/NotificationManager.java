@@ -60,18 +60,12 @@ import java.util.HashSet;
 public class NotificationManager {
     private static final String TAG = NotificationManager.class.getSimpleName();
     Context context;
-    private static NotificationManager instance = null;
     HashMap<String, Notification> notificationHashMap;
     HashSet<Integer> hashSetSubscribed;
     DataSourceClient dataSourceClientAcknowledge;
     DataSourceClient dataSourceClientResponse;
     ArrayList<DataSourceClient> dataSourceClientRequests;
     Handler handlerSubscribe;
-
-    public static NotificationManager getInstance(Context context) {
-        if (instance == null) instance = new NotificationManager(context);
-        return instance;
-    }
 
 
     void prepareNotificationHashMap() throws DataKitException {
@@ -187,7 +181,7 @@ public class NotificationManager {
         }
     };
 
-    NotificationManager(Context context) {
+    public NotificationManager(Context context) {
         try {
             Log.d(TAG, "Constructor()");
             this.context = context;
@@ -205,7 +199,6 @@ public class NotificationManager {
     }
 
     void stopService() {
-        stopAll();
         Intent intent = new Intent(ServiceNotificationManager.INTENT_NAME);
         // You can also include some extra data.
         intent.putExtra(ServiceNotificationManager.STATUS, "STOP");
@@ -252,7 +245,6 @@ public class NotificationManager {
             DataKitAPI.getInstance(context).unregister(dataSourceClientAcknowledge);
             DataKitAPI.getInstance(context).unregister(dataSourceClientResponse);
             hashSetSubscribed.clear();
-            instance = null;
         } catch (DataKitException e) {
             stopService();
         }
