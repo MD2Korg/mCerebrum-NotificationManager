@@ -55,6 +55,7 @@ public class ServiceNotificationManager extends Service {
         super.onCreate();
         Log.d(TAG, "onCreate()");
         try {
+            notificationManager=null;
             connectDataKit();
         } catch (DataKitException e) {
             stopSelf();
@@ -83,7 +84,6 @@ public class ServiceNotificationManager extends Service {
             public void onConnected() {
 //                Toast.makeText(getApplicationContext(), "Notification Manager started Successfully", Toast.LENGTH_LONG).show();
                 notificationManager = NotificationManager.getInstance(ServiceNotificationManager.this);
-
             }
         });
     }
@@ -91,7 +91,8 @@ public class ServiceNotificationManager extends Service {
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy()...");
-        notificationManager.clear();
+        if(notificationManager!=null)
+            notificationManager.clear();
         if (dataKitAPI != null && dataKitAPI.isConnected()) dataKitAPI.disconnect();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
