@@ -1,4 +1,4 @@
-version = '1.0.2'
+version = '1.0.3'
 apply from: 'versioning.gradle'
 
 buildscript {
@@ -49,7 +49,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile project(':datakitapi')
     compile project(':utilities')
-    compile('com.crashlytics.sdk.android:crashlytics:2.5.5@aar') {
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.1@aar') {
         transitive = true;
     }
 }
