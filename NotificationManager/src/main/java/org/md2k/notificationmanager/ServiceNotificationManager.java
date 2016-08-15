@@ -7,15 +7,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
-import android.widget.Toast;
 
 import org.md2k.datakitapi.DataKitAPI;
 import org.md2k.datakitapi.exception.DataKitException;
 import org.md2k.datakitapi.messagehandler.OnConnectionListener;
-import org.md2k.datakitapi.messagehandler.OnExceptionListener;
-import org.md2k.datakitapi.status.Status;
+import org.md2k.datakitapi.time.DateTime;
 import org.md2k.notificationmanager.notification.NotificationManager;
 import org.md2k.utilities.Report.Log;
+import org.md2k.utilities.Report.LogStorage;
 
 /**
  * Copyright (c) 2015, The University of Memphis, MD2K Center
@@ -45,38 +44,44 @@ import org.md2k.utilities.Report.Log;
  */
 
 public class ServiceNotificationManager extends Service {
-    private static final String TAG = ServiceNotificationManager.class.getSimpleName();
     public static final String STATUS = "STATUS";
+    public static final String INTENT_NAME = ServiceNotificationManager.class.getSimpleName();
+    private static final String TAG = ServiceNotificationManager.class.getSimpleName();
     DataKitAPI dataKitAPI;
-    public static final String INTENT_NAME=ServiceNotificationManager.class.getSimpleName();
     NotificationManager notificationManager;
-
-    public void onCreate() {
-        super.onCreate();
-        Log.d(TAG, "onCreate()");
-        try {
-            notificationManager=null;
-            connectDataKit();
-        } catch (DataKitException e) {
-            stopSelf();
-        }
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
-                new IntentFilter(INTENT_NAME));
-    }
+    private boolean isStopping;
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
             String message = intent.getStringExtra(STATUS);
-            if(message.equals("STOP")){
+            if (message.equals("STOP")) {
+                Log.w(TAG, "time=" + DateTime.convertTimeStampToDateTime(DateTime.getDateTime()) + ",timestamp=" + DateTime.getDateTime() + ",broadcast_receiver_stop_service");
+                clear();
                 stopSelf();
             }
             Log.d("receiver", "Got message: " + message);
         }
     };
 
+    public void onCreate() {
+        super.onCreate();
+        isStopping = false;
+        LogStorage.startLogFileStorageProcess(getApplicationContext().getPackageName());
+        Log.w(TAG, "time=" + DateTime.convertTimeStampToDateTime(DateTime.getDateTime()) + ",timestamp=" + DateTime.getDateTime() + ",service_start");
+        Log.d(TAG, "onCreate()");
+        try {
+            notificationManager=null;
+            connectDataKit();
+        } catch (DataKitException e) {
+            clear();
+            stopSelf();
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
+                new IntentFilter(INTENT_NAME));
+    }
 
-    private void connectDataKit() throws DataKitException {
+    private synchronized void connectDataKit() throws DataKitException {
         Log.d(TAG, "connectDataKit()...");
         dataKitAPI = DataKitAPI.getInstance(this);
         dataKitAPI.connect(new OnConnectionListener() {
@@ -88,13 +93,21 @@ public class ServiceNotificationManager extends Service {
         });
     }
 
-    @Override
-    public void onDestroy() {
+    private synchronized void clear() {
+        if (isStopping) return;
+        isStopping = true;
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        Log.w(TAG, "time=" + DateTime.convertTimeStampToDateTime(DateTime.getDateTime()) + ",timestamp=" + DateTime.getDateTime() + ",service_stop");
         Log.d(TAG, "onDestroy()...");
         if(notificationManager!=null)
             notificationManager.clear();
         if (dataKitAPI != null && dataKitAPI.isConnected()) dataKitAPI.disconnect();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+
+    }
+
+    @Override
+    public void onDestroy() {
+        clear();
         super.onDestroy();
     }
 

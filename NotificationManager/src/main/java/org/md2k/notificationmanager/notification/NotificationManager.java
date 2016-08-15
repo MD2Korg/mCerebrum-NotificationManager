@@ -74,7 +74,7 @@ public class NotificationManager {
                 stopAll();
                 if (status.equals(NotificationResponse.DELAY)) {
                     Log.d(TAG, "notification ack=DELAY");
-                    if (notificationRequest.getResponse_action().getType().equals("MESSAGE"))
+                    if (notificationRequest.getResponse_action().getType().equals(NotificationRequest.MESSAGE))
                         notificationHashMap.get(PhoneMessage.class.getSimpleName()).start(notificationRequest.getResponse_action());
 //                    if (notificationRequest.getResponse_action().getType().equals("NOTIFICATION"))
                     notificationHashMap.get(PhoneNotification.class.getSimpleName()).start(notificationRequest);
@@ -143,7 +143,7 @@ public class NotificationManager {
                 }
                 if (RETRY > 0) {
                     RETRY--;
-                    handlerSubscribe.postDelayed(this, 1000);
+                    handlerSubscribe.postDelayed(this, 5000);
                 }
             } catch (DataKitException e) {
                 stopService();
