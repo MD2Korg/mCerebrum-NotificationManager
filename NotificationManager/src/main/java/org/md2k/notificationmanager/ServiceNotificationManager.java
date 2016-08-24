@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.NotificationCompat;
 
 import org.md2k.datakitapi.DataKitAPI;
 import org.md2k.datakitapi.exception.DataKitException;
@@ -93,8 +94,16 @@ public class ServiceNotificationManager extends Service {
         });
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.w(TAG, "onStartCommand()...");
+        startForeground(98764, getCompatNotification());
+        return START_STICKY;
+    }
+
     private synchronized void clear() {
         if (isStopping) return;
+        stopForeground(true);
         isStopping = true;
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         Log.w(TAG, "time=" + DateTime.convertTimeStampToDateTime(DateTime.getDateTime()) + ",timestamp=" + DateTime.getDateTime() + ",service_stop");
@@ -114,5 +123,11 @@ public class ServiceNotificationManager extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    private android.app.Notification getCompatNotification() {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        builder.setSmallIcon(R.mipmap.ic_launcher).setContentTitle(getResources().getString(R.string.app_name));
+        return builder.build();
     }
 }
