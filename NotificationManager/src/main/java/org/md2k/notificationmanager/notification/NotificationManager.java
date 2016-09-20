@@ -66,16 +66,27 @@ public class NotificationManager {
     DataSourceClient dataSourceClientResponse;
     ArrayList<DataSourceClient> dataSourceClientRequests;
     Handler handlerSubscribe;
+    Handler handlerDelay;
     Callback1 callback = new Callback1() {
         @Override
-        public void onResponse(NotificationRequest notificationRequest, String status) {
+        public void onResponse(final NotificationRequest notificationRequest, String status) {
             try {
                 Log.d(TAG, "onResponse=" + status);
                 stopAll();
                 if (status.equals(NotificationResponse.DELAY)) {
                     Log.d(TAG, "notification ack=DELAY");
-                    if (notificationRequest.getResponse_action().getType().equals(NotificationRequest.MESSAGE))
-                        notificationHashMap.get(PhoneMessage.class.getSimpleName()).start(notificationRequest.getResponse_action());
+                    if (notificationRequest.getResponse_action().getType().equals(NotificationRequest.MESSAGE)) {
+                        handlerDelay.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    notificationHashMap.get(PhoneMessage.class.getSimpleName()).start(notificationRequest.getResponse_action());
+                                } catch (DataKitException e) {
+                                    stopService();
+                                }
+                            }
+                        }, 3000);
+                    }
 //                    if (notificationRequest.getResponse_action().getType().equals("NOTIFICATION"))
                     notificationHashMap.get(PhoneNotification.class.getSimpleName()).start(notificationRequest);
 
@@ -163,6 +174,7 @@ public class NotificationManager {
             dataSourceClientResponse = DataKitAPI.getInstance(context).register(dataSourceBuilderR);
             handlerSubscribe = new Handler();
             handlerSubscribe.post(runnableSubscribe);
+            handlerDelay = new Handler();
         } catch (DataKitException e) {
             stopService();
         }
