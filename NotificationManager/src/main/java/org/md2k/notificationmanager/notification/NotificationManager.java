@@ -188,6 +188,7 @@ public class NotificationManager {
         notificationHashMap.put(PhoneVibrate.class.getSimpleName(), new PhoneVibrate(context, callback));
         notificationHashMap.put(PhoneScreen.class.getSimpleName(), new PhoneScreen(context, callback));
         notificationHashMap.put(PhoneMessage.class.getSimpleName(), new PhoneMessage(context, callback));
+        notificationHashMap.put(PhoneMessageSpecial.class.getSimpleName(), new PhoneMessageSpecial(context, callback));
         notificationHashMap.put(PhoneNotification.class.getSimpleName(), new PhoneNotification(context, callback));
     }
 
@@ -238,6 +239,8 @@ public class NotificationManager {
                         return PhoneMessage.class.getSimpleName();
                     case NotificationRequest.NOTIFICATION:
                         return PhoneNotification.class.getSimpleName();
+                    case NotificationRequest.MESSAGE_SPECIAL:
+                        return PhoneMessageSpecial.class.getSimpleName();
                     default:
                         return null;
                 }
