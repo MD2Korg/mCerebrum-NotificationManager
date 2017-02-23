@@ -180,7 +180,7 @@ public class NotificationManager {
         }
     }
 
-    void prepareNotificationHashMap() throws DataKitException {
+    private void prepareNotificationHashMap() throws DataKitException {
         notificationHashMap = new HashMap<>();
         notificationHashMap.put(MicrosoftBandMessage.class.getSimpleName(), new MicrosoftBandMessage(context, callback));
         notificationHashMap.put(MicrosoftBandVibrate.class.getSimpleName(), new MicrosoftBandVibrate(context, callback));
@@ -202,13 +202,13 @@ public class NotificationManager {
         DataKitAPI.getInstance(context).insert(dataSourceClientResponse, dataTypeJSONObject);
     }
 
-    public void stopAll() {
+    private void stopAll() {
         for (HashMap.Entry<String, Notification> entry : notificationHashMap.entrySet()) {
             entry.getValue().stop();
         }
     }
 
-    void stopService() {
+    private void stopService() {
         Intent intent = new Intent(ServiceNotificationManager.INTENT_NAME);
         // You can also include some extra data.
         intent.putExtra(ServiceNotificationManager.STATUS, "STOP");
@@ -216,7 +216,7 @@ public class NotificationManager {
 
     }
 
-    String getNotificationString(NotificationRequest notificationRequest) {
+    private String getNotificationString(NotificationRequest notificationRequest) {
         switch (notificationRequest.getDatasource().getPlatform().getType()) {
             case PlatformType.MICROSOFT_BAND:
                 switch (notificationRequest.getType()) {
